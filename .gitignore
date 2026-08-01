@@ -1,0 +1,9 @@
+# The corpora are NOT redistributable — see README.md.
+#   UB-UNITEC PMC        CC BY-NC-SA 4.0
+#   Adobe CHART-Synthetic CC BY-NC-ND 4.0
+# Download them yourself from the sources named in the README.
+data/
+
+# Scratch: extracted images, decoded RGBA planes, the compiled engine.
+work/
+out/
