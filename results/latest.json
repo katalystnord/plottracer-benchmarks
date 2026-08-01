@@ -7,6 +7,19 @@
     "minBlobDiameter": 3,
     "space": "image (Task 6a)"
   },
+  "manual": {
+    "tolerance": "1% of the value range",
+    "figures": 262,
+    "bars": 4074,
+    "barsWithin": 3413,
+    "barsPct": 83.8,
+    "figuresFullyWithin": 211,
+    "figuresPct": 80.5,
+    "excluded": {
+      "no-calibration": 119,
+      "no-gt": 3
+    }
+  },
   "replication": [
     {
       "family": "bar",

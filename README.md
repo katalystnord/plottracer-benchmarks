@@ -133,6 +133,31 @@ points between them, which is the honest width of those estimates. A number that
 survives a disjoint sample is a measurement; one that does not is a property of
 the sample.
 
+### Manual capture — measured in DATA space
+
+Auto-extract is only half the product. This drives the application's own
+`CalibrationSession` through the calls the UI makes — calibrate from two tick
+labels, then two corners per bar — and compares the READ VALUE to the corpus's
+own numbers.
+
+| | |
+|---|---|
+| figures scored | **262** (splits 4 + 5) |
+| bars within 1% of the corpus value | **83.8%** (3,413 / 4,074) |
+| figures where every bar is within 1% | **80.5%** (211 / 262) |
+| excluded | 119 figures whose ground truth has no two numeric tick labels to calibrate from |
+
+⚑ **The calibration is recovered from the ground truth, not invented**: joining
+`task4.axes[].tick_pt` (pixel) to `task2.text_blocks` (text) via
+`task3.text_roles` (which are `tick_label`) gives real (pixel, value) pairs off
+the figure. That is what makes this a measurement rather than a check that the
+app agrees with itself.
+
+⚑ Corners are placed at the ground truth's own bar boxes, so this isolates the
+capture model and the arithmetic from a human's aim. Tolerance is 1% of the
+value range — tighter than the 5% image tolerance used above, because a placed
+corner should land on the bar's own edge.
+
 ### Adobe CHART-Synthetic — generated figures
 
 | type | figures | result |

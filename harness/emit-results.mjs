@@ -75,6 +75,38 @@ const a = args(process.argv);
 const split4 = load(a.pmc);
 const split5 = load(a.pmc5);
 
+/**
+ * Manual drag-box capture, scored in DATA space by harness/score-manual.mjs.
+ *
+ * ⚑ This exists because the website carried "31 of 32 exact" from a 32-figure
+ * pass in July whose harness no longer existed — the one number on the page that
+ * could not be regenerated while every other one could. An unreproducible
+ * figure is the one a reader is entitled to doubt.
+ */
+function manualSummary(files) {
+  const rows = (files ?? '')
+    .split(',')
+    .filter(Boolean)
+    .flatMap((f) => JSON.parse(readFileSync(f, 'utf8')));
+  const ok = rows.filter((r) => r.status === 'ok');
+  if (!ok.length) return undefined;
+  const within = ok.reduce((s, r) => s + r.within, 0);
+  const total = ok.reduce((s, r) => s + r.truth, 0);
+  const exact = ok.filter((r) => r.within === r.truth).length;
+  const excluded = {};
+  for (const r of rows.filter((r) => r.status !== 'ok')) excluded[r.status] = (excluded[r.status] ?? 0) + 1;
+  return {
+    tolerance: '1% of the value range',
+    figures: ok.length,
+    bars: total,
+    barsWithin: within,
+    barsPct: +((100 * within) / total).toFixed(1),
+    figuresFullyWithin: exact,
+    figuresPct: +((100 * exact) / ok.length).toFixed(1),
+    excluded,
+  };
+}
+
 const corpora = [
   {
     id: 'pmc',
@@ -119,6 +151,7 @@ const results = {
   measured: a.date ?? 'unknown',
   harness: 'plottracer-benchmarks',
   settings: { tolerance: 60, minBlobDiameter: 3, space: 'image (Task 6a)' },
+  manual: manualSummary(a.manual),
   replication: split5.length
     ? ['bar', 'line', 'scatter'].map((f) => replication(split4, split5, f)).filter(Boolean)
     : undefined,
