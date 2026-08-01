@@ -1,0 +1,181 @@
+{
+  "appVersion": "2.0.0-rc1",
+  "measured": "2026-08-01",
+  "harness": "plottracer-benchmarks",
+  "settings": {
+    "tolerance": 60,
+    "minBlobDiameter": 3,
+    "space": "image (Task 6a)"
+  },
+  "corpora": [
+    {
+      "id": "pmc",
+      "name": "UB-UNITEC PMC",
+      "kind": "Real published figures",
+      "figures": 400,
+      "types": [
+        {
+          "family": "bar",
+          "metric": "recall at IoU >= 0.5",
+          "unit": "bars",
+          "all": {
+            "pct": 76.1,
+            "matched": 2461,
+            "total": 3234,
+            "figures": 192
+          },
+          "colour": {
+            "pct": 82.2,
+            "matched": 1614,
+            "total": 1963,
+            "figures": 91
+          },
+          "greyscale": {
+            "pct": 66.6,
+            "matched": 847,
+            "total": 1271,
+            "figures": 101
+          },
+          "separated": {
+            "pct": 81.4,
+            "matched": 1102,
+            "total": 1353,
+            "figures": 105
+          },
+          "touching": {
+            "pct": 72.2,
+            "matched": 1359,
+            "total": 1881,
+            "figures": 87
+          }
+        },
+        {
+          "family": "line",
+          "metric": "points within 5% tolerance",
+          "unit": "points",
+          "all": {
+            "pct": 72.5,
+            "matched": 10338,
+            "total": 14265,
+            "figures": 156,
+            "predPerGt": 0.97
+          },
+          "colour": {
+            "pct": 77.5,
+            "matched": 9491,
+            "total": 12239,
+            "figures": 113,
+            "predPerGt": 0.97
+          },
+          "greyscale": {
+            "pct": 41.8,
+            "matched": 847,
+            "total": 2026,
+            "figures": 43,
+            "predPerGt": 0.99
+          }
+        },
+        {
+          "family": "scatter",
+          "metric": "points within 5% tolerance",
+          "unit": "points",
+          "all": {
+            "pct": 87.8,
+            "matched": 2116,
+            "total": 2410,
+            "figures": 52,
+            "predPerGt": 2.87
+          },
+          "colour": {
+            "pct": 87,
+            "matched": 1442,
+            "total": 1658,
+            "figures": 32,
+            "predPerGt": 2.83
+          },
+          "greyscale": {
+            "pct": 89.6,
+            "matched": 674,
+            "total": 752,
+            "figures": 20,
+            "predPerGt": 2.97
+          }
+        }
+      ]
+    },
+    {
+      "id": "adobe",
+      "name": "Adobe CHART-Synthetic",
+      "kind": "Generated figures",
+      "figures": 808,
+      "types": [
+        {
+          "family": "bar",
+          "metric": "recall at IoU >= 0.5",
+          "unit": "bars",
+          "all": {
+            "pct": 35.3,
+            "matched": 2380,
+            "total": 6739,
+            "figures": 498
+          },
+          "colour": {
+            "pct": 35.3,
+            "matched": 2380,
+            "total": 6739,
+            "figures": 498
+          },
+          "greyscale": null,
+          "separated": null,
+          "touching": null
+        },
+        {
+          "family": "line",
+          "metric": "points within 5% tolerance",
+          "unit": "points",
+          "all": {
+            "pct": 92,
+            "matched": 2058,
+            "total": 2236,
+            "figures": 200,
+            "predPerGt": 0.99
+          },
+          "colour": {
+            "pct": 92.3,
+            "matched": 2057,
+            "total": 2229,
+            "figures": 199,
+            "predPerGt": 0.99
+          },
+          "greyscale": {
+            "pct": 14.3,
+            "matched": 1,
+            "total": 7,
+            "figures": 1,
+            "predPerGt": 1
+          }
+        },
+        {
+          "family": "scatter",
+          "metric": "points within 5% tolerance",
+          "unit": "points",
+          "all": {
+            "pct": 32.1,
+            "matched": 3855,
+            "total": 11996,
+            "figures": 110,
+            "predPerGt": 0.37
+          },
+          "colour": {
+            "pct": 32.1,
+            "matched": 3855,
+            "total": 11996,
+            "figures": 110,
+            "predPerGt": 0.37
+          },
+          "greyscale": null
+        }
+      ]
+    }
+  ]
+}
