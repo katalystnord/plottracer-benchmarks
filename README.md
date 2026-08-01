@@ -146,7 +146,8 @@ the sample.
 The gaps are more useful than the headline, and each one has a diagnosed cause
 rather than a shrug:
 
-- **Greyscale costs about 16 points on bars and 36 on lines.** Colour-keyed
+- **Greyscale costs about 10 points on bars and 37 on lines** (79.6 vs 70.1;
+  76.1 vs 39.0). Colour-keyed
   extraction has nothing to key on when everything is black. This is a scope
   boundary, not a bug.
 - **Hatched fills break bar detection — this is the whole Adobe bar story.**
