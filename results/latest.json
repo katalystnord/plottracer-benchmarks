@@ -7,12 +7,56 @@
     "minBlobDiameter": 3,
     "space": "image (Task 6a)"
   },
+  "replication": [
+    {
+      "family": "bar",
+      "splitA": {
+        "pct": 76.1,
+        "total": 3234,
+        "figures": 192
+      },
+      "splitB": {
+        "pct": 76,
+        "total": 3260,
+        "figures": 192
+      },
+      "delta": 0.1
+    },
+    {
+      "family": "line",
+      "splitA": {
+        "pct": 72.5,
+        "total": 14265,
+        "figures": 156
+      },
+      "splitB": {
+        "pct": 66.3,
+        "total": 15423,
+        "figures": 156
+      },
+      "delta": 6.2
+    },
+    {
+      "family": "scatter",
+      "splitA": {
+        "pct": 87.8,
+        "total": 2410,
+        "figures": 52
+      },
+      "splitB": {
+        "pct": 94.2,
+        "total": 2999,
+        "figures": 51
+      },
+      "delta": 6.4
+    }
+  ],
   "corpora": [
     {
       "id": "pmc",
       "name": "UB-UNITEC PMC",
       "kind": "Real published figures",
-      "figures": 400,
+      "figures": 799,
       "types": [
         {
           "family": "bar",
@@ -20,33 +64,33 @@
           "unit": "bars",
           "all": {
             "pct": 76.1,
-            "matched": 2461,
-            "total": 3234,
-            "figures": 192
+            "matched": 4940,
+            "total": 6494,
+            "figures": 384
           },
           "colour": {
-            "pct": 82.2,
-            "matched": 1614,
-            "total": 1963,
-            "figures": 91
+            "pct": 79.6,
+            "matched": 3250,
+            "total": 4082,
+            "figures": 191
           },
           "greyscale": {
-            "pct": 66.6,
-            "matched": 847,
-            "total": 1271,
-            "figures": 101
+            "pct": 70.1,
+            "matched": 1690,
+            "total": 2412,
+            "figures": 193
           },
           "separated": {
-            "pct": 81.4,
-            "matched": 1102,
-            "total": 1353,
-            "figures": 105
+            "pct": 82.2,
+            "matched": 2400,
+            "total": 2921,
+            "figures": 219
           },
           "touching": {
-            "pct": 72.2,
-            "matched": 1359,
-            "total": 1881,
-            "figures": 87
+            "pct": 71.1,
+            "matched": 2540,
+            "total": 3573,
+            "figures": 165
           }
         },
         {
@@ -54,24 +98,24 @@
           "metric": "points within 5% tolerance",
           "unit": "points",
           "all": {
-            "pct": 72.5,
-            "matched": 10338,
-            "total": 14265,
-            "figures": 156,
+            "pct": 69.3,
+            "matched": 20571,
+            "total": 29688,
+            "figures": 312,
             "predPerGt": 0.97
           },
           "colour": {
-            "pct": 77.5,
-            "matched": 9491,
-            "total": 12239,
-            "figures": 113,
-            "predPerGt": 0.97
+            "pct": 76.1,
+            "matched": 18449,
+            "total": 24253,
+            "figures": 218,
+            "predPerGt": 0.96
           },
           "greyscale": {
-            "pct": 41.8,
-            "matched": 847,
-            "total": 2026,
-            "figures": 43,
+            "pct": 39,
+            "matched": 2122,
+            "total": 5435,
+            "figures": 94,
             "predPerGt": 0.99
           }
         },
@@ -80,25 +124,25 @@
           "metric": "points within 5% tolerance",
           "unit": "points",
           "all": {
-            "pct": 87.8,
-            "matched": 2116,
-            "total": 2410,
-            "figures": 52,
-            "predPerGt": 2.87
+            "pct": 91.3,
+            "matched": 4941,
+            "total": 5409,
+            "figures": 103,
+            "predPerGt": 2.75
           },
           "colour": {
-            "pct": 87,
-            "matched": 1442,
-            "total": 1658,
-            "figures": 32,
-            "predPerGt": 2.83
+            "pct": 90.4,
+            "matched": 3057,
+            "total": 3383,
+            "figures": 59,
+            "predPerGt": 2.56
           },
           "greyscale": {
-            "pct": 89.6,
-            "matched": 674,
-            "total": 752,
-            "figures": 20,
-            "predPerGt": 2.97
+            "pct": 93,
+            "matched": 1884,
+            "total": 2026,
+            "figures": 44,
+            "predPerGt": 3.05
           }
         }
       ]

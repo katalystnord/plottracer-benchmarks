@@ -29,8 +29,9 @@ inconsistently drawn, frequently greyscale. This is the corpus that matters.
 > Pattern Recognition (ICPR)*, 2022, pp. 4995–5001.
 > doi:[10.1109/ICPR56361.2022.9956289](https://doi.org/10.1109/ICPR56361.2022.9956289)
 
-Package scored: `ICPR2022_CHARTINFO_UB_UNITEC_PMC_TEST_v2.1`, split 4
-(the Task 6a/6b data-extraction split), 444 annotated charts.
+Packages scored: `ICPR2022_CHARTINFO_UB_UNITEC_PMC_TEST_v2.1`, **split 4**
+(Tasks 6a/6b, data extraction) and **split 5** (Task 7, end-to-end) — 887
+annotated charts, and the two share no images.
 Licence: **CC BY-NC-SA 4.0** (stated in `license.txt` inside the package).
 
 ### 2. Adobe CHART-Synthetic — generated charts
@@ -121,9 +122,16 @@ PlotTracer **2.0.0-rc1**, measured 2026-08-01. Reproduce with `harness/run.sh`.
 
 | type | figures | result | colour | greyscale |
 |---|---|---|---|---|
-| **bar** | 192 (3,234 bars) | **76.1%** recall | 82.2% | 66.6% |
-| **line** | 156 (14,265 pts) | **72.5%** found | 77.5% | 41.8% |
-| **scatter** | 52 (2,410 pts) | **87.8%** found (2.87× over-detection) | 87.0% | 89.6% |
+| **bar** | 384 (6,494 bars) | **76.1%** recall | 79.6% | 70.1% |
+| **line** | 312 (29,688 pts) | **69.3%** found | 76.1% | 39.0% |
+| **scatter** | 103 (5,409 pts) | **91.3%** found | 90.4% | 93.0% |
+
+**⚑ The bar number reproduces on data it has never seen.** The two splits share
+no images, and scored separately they give **76.1%** (3,234 bars) and **76.0%**
+(3,260 bars) — a tenth of a point apart. Line and scatter move by about six
+points between them, which is the honest width of those estimates. A number that
+survives a disjoint sample is a measurement; one that does not is a property of
+the sample.
 
 ### Adobe CHART-Synthetic — generated figures
 
@@ -150,9 +158,10 @@ rather than a shrug:
   76.1% and 35.3%. Line tracing is unaffected (92%) because it reads column
   runs, not connectivity.
 - **Bars of identical colour that touch flood into one blob** and read as one
-  oversized bar. On PMC this separates 98% recall (colour, separated) from 82%
-  (colour, touching) — a bigger cost than greyscale, and the one on this list
-  that is ours to fix rather than inherent.
+  oversized bar. Across 384 real bar figures: **82.2%** separated against
+  **71.1%** touching, and on colour figures alone **89.2%** against **73.6%** —
+  a bigger cost than greyscale, and the one on this list that is ours to fix
+  rather than inherent.
 - **Dense scatter over-detects on real figures (2.87×) and under-detects on
   synthetic ones (0.37×)** — the same overlap problem from both ends. On PMC,
   ~30% of the strays are one marker splintering, ~20% are markers already
