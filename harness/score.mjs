@@ -143,6 +143,32 @@ function isMonochrome(colours) {
 }
 
 /**
+ * Do this figure's bars mostly TOUCH their neighbours?
+ *
+ * Bars of the same colour with no gap between them flood into a single blob and
+ * come back as one oversized bar, so separating "touching" from "separated" is
+ * what turns one recall number into a diagnosis. Measured along the category
+ * axis: bars are grouped into rows/columns by their shared extent, and a figure
+ * counts as touching when more than half of the adjacent pairs have zero or
+ * negative gap.
+ */
+function barsTouch(bars) {
+  if (bars.length < 2) return false;
+  // Vertical bars share a baseline (y0+height); horizontal bars share x0.
+  const vertical = new Set(bars.map((b) => Math.round(b.y0 + b.height))).size <= new Set(bars.map((b) => Math.round(b.x0))).size;
+  const lo = (b) => (vertical ? b.x0 : b.y0);
+  const hi = (b) => (vertical ? b.x0 + b.width : b.y0 + b.height);
+  const sorted = [...bars].sort((a, b) => lo(a) - lo(b));
+  let pairs = 0;
+  let touching = 0;
+  for (let i = 1; i < sorted.length; i++) {
+    pairs++;
+    if (lo(sorted[i]) - hi(sorted[i - 1]) <= 0) touching++;
+  }
+  return pairs > 0 && touching / pairs > 0.5;
+}
+
+/**
  * Resample a dense trace at the ground truth's own x positions.
  *
  * ⚑ WHY THIS IS A FAIRNESS CORRECTION, NOT A THUMB ON THE SCALE. The competition
@@ -229,6 +255,7 @@ async function main() {
         file: f, chartType, family, status: 'ok',
         picks: picks.length,
         monochrome: isMonochrome(picks),
+        touching: barsTouch(bars),
         matched: m.matched, gt: m.gt, pred: m.pred,
       });
       continue;

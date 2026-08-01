@@ -34,6 +34,16 @@ for (const [family, list] of Object.entries(byFamily)) {
         `  ${label.padEnd(7)} ${String(sub.length).padStart(4)} figs  ` +
           `recall ${((100 * m) / g).toFixed(1)}%  (${m}/${g} bars)`
       );
+      for (const t of [false, true]) {
+        const s2 = sub.filter((r) => r.touching === t);
+        if (!s2.length) continue;
+        const m2 = s2.reduce((a, r) => a + r.matched, 0);
+        const g2 = s2.reduce((a, r) => a + r.gt, 0);
+        console.log(
+          `      ${t ? 'touching ' : 'separated'} ${String(s2.length).padStart(4)} figs  ` +
+            `recall ${((100 * m2) / g2).toFixed(1)}%  (${m2}/${g2})`
+        );
+      }
     } else {
       const w = sub.reduce((a, r) => a + r.within, 0);
       const g = sub.reduce((a, r) => a + r.gt, 0);
