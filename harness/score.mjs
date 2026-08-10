@@ -197,12 +197,74 @@ function resampleAtGtX(trace, gtPoints) {
   return out;
 }
 
+/**
+ * The DECLARED category dividers for a bar figure, built from the corpus's own
+ * axis annotation (v2.1).
+ *
+ * ⚑ WHAT THIS MODELS, AND WHAT IT DOES NOT. PlotTracer asks the user to mark the
+ * category axis and say how many categories there are; the app then generates
+ * the dividers. Here the corpus's own tick locations stand in for that marking,
+ * which measures the CEILING -- what the feature gives when the categories are
+ * marked exactly right. A real user placing two ends and a count lands near it
+ * on an evenly spaced chart and further away on an irregular one. This is a
+ * "how much is on the table" number, not a "what a user gets" number, and must
+ * be reported as such.
+ *
+ * ⚑ The corpus distinguishes the two tick conventions itself (`_x-tick-type`):
+ * `separators` sit BETWEEN categories and are already dividers; `markers` sit
+ * under each one, so the dividers are their midpoints. Same rule as the app's
+ * own `dividerParamsFrom`. Closed at both ends by the plot box.
+ */
+function declaredDividers(gt, family, bb) {
+  const t4 = gt.task4?.output;
+  if (!t4 || !bb) return null;
+  const horizontal = (gt.task1?.output?.chart_type ?? '').toLowerCase().includes('horizontal');
+  const axisKey = horizontal ? 'y-axis' : 'x-axis';
+  const typeKey = horizontal ? '_y-tick-type' : '_x-tick-type';
+  // ⚑ THE CORPUS'S OWN LABEL IS NOT TRUSTWORTHY. Measured across 276 vertical
+  // bar figures, `_x-tick-type` disagrees with the figure's own geometry in 39%
+  // of cases -- PMC5715234 is annotated `separators` while its six ticks sit
+  // dead centre of its six bars. Trusting it put a divider through the middle of
+  // every bar and CUT EACH ONE IN HALF: the prediction count doubled exactly,
+  // which is what gave the fault away.
+  //
+  // So the convention is read off the geometry: do the ticks fall inside bars,
+  // or between them? That is the same question a user answers by looking, and it
+  // is the one thing the harness supplies here beyond the plot box and colours.
+  // It hands over no position -- the detector still has to find every bar.
+  const bars = gt.task6?.output?.['visual elements']?.bars ?? [];
+  const labelled = t4.axes?.[typeKey];
+  const ticks = (t4.axes?.[axisKey] ?? [])
+    .map((t) => (horizontal ? t.tick_pt?.y : t.tick_pt?.x))
+    .filter((v) => Number.isFinite(v))
+    .sort((a, b) => a - b);
+  if (ticks.length < 2 || bars.length === 0) return null;
+  const inside = ticks.filter((t) =>
+    bars.some((b) =>
+      horizontal ? b.y0 <= t && t <= b.y0 + b.height : b.x0 <= t && t <= b.x0 + b.width
+    )
+  ).length;
+  const kind = inside > ticks.length / 2 ? 'markers' : 'separators';
+  const lo = horizontal ? bb.y0 : bb.x0;
+  const hi = horizontal ? bb.y0 + bb.height : bb.x0 + bb.width;
+  const interior =
+    kind === 'separators'
+      ? ticks.filter((t) => t > lo && t < hi)
+      : ticks.slice(0, -1).map((t, i) => (t + ticks[i + 1]) / 2);
+  const dividers = [lo, ...interior, hi];
+  return { dividers, categoryAxis: horizontal ? 'y' : 'x', ticks: ticks.length, kind, labelled };
+}
+
 async function main() {
   const args = parseArgs(process.argv);
   const engineDir = path.resolve(args.engine);
   const gtDir = path.resolve(args.gt);
   const rgbaDir = path.resolve(args.rgba);
   const wanted = new Set((args.type ?? 'bar,line,scatter').split(','));
+  // v2.1: supply the corpus's own category ticks as declared dividers, so a
+  // merged run of touching bars is cut. Off by default -- the published numbers
+  // measure the app as a user without ticks gets it.
+  const useTicks = args.ticks === true || args.ticks === 'true';
 
   const { runBarDetect } = await import(path.join(engineDir, 'engine/barDetectRun.js'));
   const { runBlobDetect } = await import(path.join(engineDir, 'engine/blobDetectRun.js'));
@@ -243,11 +305,12 @@ async function main() {
         continue;
       }
       const picks = dedupeColours(bars.map((b) => boxFillColour(img, b)));
+      const cats = useTicks ? declaredDividers(gt, family, bb) : null;
       const boxes = [];
       for (const target of picks) {
         const r = runBarDetect(img.data, img.width, img.height, target, TOLERANCE, 'foreground', region, {
           minDiameter: MIN_BLOB_DIAMETER,
-        });
+        }, cats ?? undefined);
         if (!('error' in r)) boxes.push(...r.boxes.map(predBox));
       }
       const m = boxRecallIoU(bars.map(gtBox), boxes, 0.5);
@@ -257,6 +320,8 @@ async function main() {
         monochrome: isMonochrome(picks),
         touching: barsTouch(bars),
         matched: m.matched, gt: m.gt, pred: m.pred,
+        ticks: cats ? cats.ticks : 0,
+        tickKind: cats ? cats.kind : null,
       });
       continue;
     }
