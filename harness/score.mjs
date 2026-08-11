@@ -29,12 +29,13 @@
 
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 import { boxRecallIoU, pointScore, toleranceFor } from './lib/metric.mjs';
 
 // The app's own defaults, not tuned for this run -- see Workspace.tsx.
-const TOLERANCE = 60;
-const MIN_BLOB_DIAMETER = 3;
+export const TOLERANCE = 60;
+export const MIN_BLOB_DIAMETER = 3;
 /** Two picks closer than this in every channel are the same colour to the eye. */
 const DEDUPE_CHEBYSHEV = TOLERANCE / 2;
 /** A resampled trace point must sit within this many px of the GT vertex's x. */
@@ -47,7 +48,7 @@ function parseArgs(argv) {
 }
 
 /** Read the <u32 w><u32 h><rgba> plane written by decode.py. */
-function readRgba(file) {
+export function readRgba(file) {
   const buf = readFileSync(file);
   const width = buf.readUInt32LE(0);
   const height = buf.readUInt32LE(4);
@@ -64,7 +65,7 @@ function samplePixel(img, x, y) {
 }
 
 /** Collapse picks that are the same colour to the eye. Order-stable. */
-function dedupeColours(picks) {
+export function dedupeColours(picks) {
   const kept = [];
   for (const c of picks) {
     const dup = kept.some((k) => k.every((v, i) => Math.abs(v - c[i]) <= DEDUPE_CHEBYSHEV));
@@ -103,7 +104,7 @@ function dedupeColours(picks) {
  * against 12 real bars) and dragged the measured bar recall on this corpus down
  * to 37.2%. Sampling the FILL is what a person does with an eyedropper.
  */
-function boxFillColour(img, box) {
+export function boxFillColour(img, box) {
   const inset = Math.min(1, Math.floor(box.width / 4), Math.floor(box.height / 4));
   const x0 = box.x0 + inset;
   const y0 = box.y0 + inset;
@@ -132,13 +133,13 @@ function modalColour(samples) {
   return best ? best.colour : [0, 0, 0];
 }
 
-const gtBox = (b) => ({ minX: b.x0, minY: b.y0, maxX: b.x0 + b.width, maxY: b.y0 + b.height });
-const predBox = (b) => ({ minX: b.start.x, minY: b.start.y, maxX: b.end.x, maxY: b.end.y });
+export const gtBox = (b) => ({ minX: b.x0, minY: b.y0, maxX: b.x0 + b.width, maxY: b.y0 + b.height });
+export const predBox = (b) => ({ minX: b.start.x, minY: b.start.y, maxX: b.end.x, maxY: b.end.y });
 
 /** Is every sampled element pixel effectively grey? (Strict: one coloured
  *  element puts the figure in the COLOUR bucket, so colour numbers are if
  *  anything pessimistic.) */
-function isMonochrome(colours) {
+export function isMonochrome(colours) {
   return colours.every((c) => Math.max(...c) - Math.min(...c) < 30);
 }
 
@@ -152,7 +153,7 @@ function isMonochrome(colours) {
  * counts as touching when more than half of the adjacent pairs have zero or
  * negative gap.
  */
-function barsTouch(bars) {
+export function barsTouch(bars) {
   if (bars.length < 2) return false;
   // Vertical bars share a baseline (y0+height); horizontal bars share x0.
   const vertical = new Set(bars.map((b) => Math.round(b.y0 + b.height))).size <= new Set(bars.map((b) => Math.round(b.x0))).size;
@@ -215,7 +216,7 @@ function resampleAtGtX(trace, gtPoints) {
  * under each one, so the dividers are their midpoints. Same rule as the app's
  * own `dividerParamsFrom`. Closed at both ends by the plot box.
  */
-function declaredDividers(gt, family, bb) {
+export function declaredDividers(gt, family, bb) {
   const t4 = gt.task4?.output;
   if (!t4 || !bb) return null;
   const horizontal = (gt.task1?.output?.chart_type ?? '').toLowerCase().includes('horizontal');
@@ -451,4 +452,7 @@ function summarise(rows) {
   }
 }
 
-main();
+// ⚑ Run only when this file IS the program. Diagnostics import it so they use
+// THESE helpers -- a trace that re-implemented `declaredDividers` would be
+// diagnosing a different experiment from the one that produced the numbers.
+if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) main();
