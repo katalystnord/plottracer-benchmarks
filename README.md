@@ -116,7 +116,10 @@ and still counts against us.
 
 ## Results
 
-PlotTracer **2.0.0-rc1**, measured 2026-08-01. Reproduce with `harness/run.sh`.
+PlotTracer **2.0.0-rc1**, measured 2026-08-01. Reproduce with `harness/run.sh`,
+which scores split 4 and split 5 separately and pools them — the same 262
+figures the table reports. (It used to score split 4 alone, so the command this
+line points at did not produce the numbers beside it.)
 
 ### UB-UNITEC PMC — real published figures
 
