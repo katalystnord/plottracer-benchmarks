@@ -8,10 +8,13 @@
  * by construction, which is the only arrangement worth publishing a number from.
  *
  * ⚑ WHAT THE HARNESS SUPPLIES, AND WHY. PlotTracer is human-in-the-loop: a
- * person calibrates the axes and picks the curve/bar/marker colour, then the
- * app extracts. To measure the app rather than the person, the harness supplies
- * exactly those two human inputs and nothing else:
+ * person calibrates the axes, declares the chart's structure and picks the
+ * curve/bar/marker colour, then the app extracts. To measure the app rather than
+ * the person, the harness supplies those human inputs from the corpus's own
+ * annotation, and nothing else. There are TWO PATHS, scored separately in the
+ * same pass and never blended:
  *
+ * AUTO -- the published path. Two inputs:
  *   1. the PLOT BOX  -- from the corpus's own `task4.output._plot_bb`, which is
  *      what a user has after clicking the axes.
  *   2. the COLOUR(S) -- sampled FROM THE IMAGE at ground-truth element
@@ -19,6 +22,30 @@
  *      "the user clicks each colour they can see". It hands over a location to
  *      sample, never an answer: the detector still has to find every element of
  *      that colour by itself, and is scored on all of them.
+ *
+ * ASSISTED -- BARS ONLY. The same run plus the two things a person DECLARES in
+ * the bar calibration walk and that no detector can work out for itself:
+ *   3. the MARKED CATEGORY AXIS -- `declaredDividers`, from the corpus's ticks.
+ *   4. the DECLARED BASELINE    -- `declaredBaseline`, from the corpus's own
+ *      numeric tick labels.
+ *
+ * ⚑⚑ WHY THE SECOND PATH EXISTS AT ALL. Until 2026-08-26 this file ran the auto
+ * path only, and reported the result under the product's name. Three of the
+ * app's bar techniques are gated on a declared baseline and one on the marked
+ * axis, so an entire class of work was invisible to this instrument BY
+ * CONSTRUCTION -- not through a bug, which eventually shows itself, but through a
+ * scope the harness never declared, which reads as coverage forever. The
+ * published numbers were never wrong; the LABEL on them was broader than the
+ * thing they measured.
+ *
+ * ⚠️ THE ASSISTED NUMBER IS A CEILING. Its declarations are the annotator's,
+ * placed exactly. A person marking an axis and clicking a baseline lands near
+ * them, not on them. It says what the feature is worth when the declaration is
+ * right -- "how much is on the table" -- and must be reported as such.
+ *
+ * ⚑ LINE AND SCATTER HAVE NO ASSISTED PATH, and that is a finding rather than an
+ * omission: their walk asks for the axes and the colour, both of which the auto
+ * path already supplies. Their rows say so in `assistedSkipped`.
  *
  * Everything after that is the app's own code, at the app's own default
  * settings (tolerance 60, minimum blob diameter 3).
@@ -32,6 +59,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import { boxRecallIoU, pointScore, toleranceFor } from './lib/metric.mjs';
+import { numericTicksAlong, axisPointsAlong, extremeTickPair } from './lib/gt.mjs';
 
 // The app's own defaults, not tuned for this run -- see Workspace.tsx.
 export const TOLERANCE = 60;
@@ -216,11 +244,14 @@ function resampleAtGtX(trace, gtPoints) {
  * under each one, so the dividers are their midpoints. Same rule as the app's
  * own `dividerParamsFrom`. Closed at both ends by the plot box.
  */
+export function barsAreHorizontal(gt) {
+  return (gt.task1?.output?.chart_type ?? '').toLowerCase().includes('horizontal');
+}
+
 export function declaredDividers(gt, family, bb) {
   const t4 = gt.task4?.output;
   if (!t4 || !bb) return null;
-  const horizontal = (gt.task1?.output?.chart_type ?? '').toLowerCase().includes('horizontal');
-  const axisKey = horizontal ? 'y-axis' : 'x-axis';
+  const horizontal = barsAreHorizontal(gt);
   const typeKey = horizontal ? '_y-tick-type' : '_x-tick-type';
   // ⚑ THE CORPUS'S OWN LABEL IS NOT TRUSTWORTHY. Measured across 276 vertical
   // bar figures, `_x-tick-type` disagrees with the figure's own geometry in 39%
@@ -235,8 +266,12 @@ export function declaredDividers(gt, family, bb) {
   // It hands over no position -- the detector still has to find every bar.
   const bars = gt.task6?.output?.['visual elements']?.bars ?? [];
   const labelled = t4.axes?.[typeKey];
-  const ticks = (t4.axes?.[axisKey] ?? [])
-    .map((t) => (horizontal ? t.tick_pt?.y : t.tick_pt?.x))
+  // ⚑ The categories run ACROSS the bars: down the image on a horizontal chart,
+  // across it on an upright one. Which annotated axis that is, is read off the
+  // pixels rather than off the key name -- see `axisKeyAlong`.
+  const categoryDirection = horizontal ? 'y' : 'x';
+  const ticks = axisPointsAlong(gt, categoryDirection)
+    .map((t) => (horizontal ? t.tick_pt.y : t.tick_pt.x))
     .filter((v) => Number.isFinite(v))
     .sort((a, b) => a - b);
   if (ticks.length < 2 || bars.length === 0) return null;
@@ -256,20 +291,75 @@ export function declaredDividers(gt, family, bb) {
   return { dividers, categoryAxis: horizontal ? 'y' : 'x', ticks: ticks.length, kind, labelled };
 }
 
+/**
+ * The DECLARED BASELINE for a bar figure -- where the user says the bars sit,
+ * in image pixels along the VALUE axis.
+ *
+ * ⚑⚑ WHY THE HARNESS HAS TO SUPPLY THIS, AND WHY IT DID NOT UNTIL NOW. The
+ * baseline is not something the detector works out; it is something a person
+ * DECLARES in the calibration walk, and three of the app's bar techniques are
+ * gated on it -- joining a bar severed by the zero rule, telling a legend swatch
+ * from a bar, and deciding whether a reading is a `Value` or a `Min`/`Max` pair.
+ * A harness that never passes one cannot see any of them, so it reports the AUTO
+ * path while wearing a label that says "PlotTracer". That is the scope this file
+ * used to leave undeclared.
+ *
+ * ⚑ RECOVERED FROM THE CORPUS'S OWN ANNOTATION, exactly as `score-manual.mjs`
+ * recovers its calibration: two numeric tick labels give (pixel, value) pairs off
+ * the figure, and the baseline is the pixel where that line reaches ZERO. Where
+ * the axis never reaches zero the bars sit on the axis line itself, so the
+ * baseline is the plot box edge at the LOW-VALUE end -- which is the same thing a
+ * user clicks, and is reported as `axis-end` so the two cases stay separable.
+ *
+ * ⚑ IT HANDS OVER NO BAR. Like `declaredDividers`, this is an input a person
+ * supplies before extraction starts; the detector still has to find every bar
+ * itself and is scored on all of them.
+ *
+ * ⚠️ CEILING, NOT A USER'S DAY. The ticks are the annotator's, placed exactly.
+ * A person clicking two tick labels lands near this and not on it. Report it as
+ * "what the feature is worth when the baseline is right", never as "what a user
+ * gets".
+ */
+export function declaredBaseline(gt, bb, horizontal, tolerancePx) {
+  if (!bb || !(bb.width > 0) || !(bb.height > 0)) return null;
+  // The VALUE axis is the one the categories do NOT run along -- y for an
+  // upright chart, x for a horizontal one. Same rule as the app's own
+  // `baselinePixelForDetect`.
+  const ticks = numericTicksAlong(gt, horizontal ? 'x' : 'y');
+  const pair = extremeTickPair(ticks, !horizontal);
+  if (!pair) return null;
+  const key = (t) => (horizontal ? t.px : t.py);
+  const [a, b] = pair;
+  const atZero = key(a) + ((0 - a.value) * (key(b) - key(a))) / (b.value - a.value);
+  const boxLo = horizontal ? bb.x0 : bb.y0;
+  const boxHi = horizontal ? bb.x0 + bb.width : bb.y0 + bb.height;
+  if (Number.isFinite(atZero) && atZero >= boxLo && atZero <= boxHi) {
+    return { atPixel: atZero, tolerancePx, source: 'zero', ticks: ticks.length };
+  }
+  // Zero is off this chart. The bars stand on the axis line at the low-value
+  // end; which box edge that is depends on which way the axis runs, which the
+  // tick pair states rather than convention assuming.
+  const lowValueEdge = a.value < b.value ? boxLo : boxHi;
+  return { atPixel: lowValueEdge, tolerancePx, source: 'axis-end', ticks: ticks.length };
+}
+
 async function main() {
   const args = parseArgs(process.argv);
   const engineDir = path.resolve(args.engine);
   const gtDir = path.resolve(args.gt);
   const rgbaDir = path.resolve(args.rgba);
   const wanted = new Set((args.type ?? 'bar,line,scatter').split(','));
-  // v2.1: supply the corpus's own category ticks as declared dividers, so a
-  // merged run of touching bars is cut. Off by default -- the published numbers
-  // measure the app as a user without ticks gets it.
-  const useTicks = args.ticks === true || args.ticks === 'true';
 
   const { runBarDetect } = await import(path.join(engineDir, 'engine/barDetectRun.js'));
   const { runBlobDetect } = await import(path.join(engineDir, 'engine/blobDetectRun.js'));
   const { runColorTrace } = await import(path.join(engineDir, 'engine/colorTraceRun.js'));
+  // ⚑ THE APP'S OWN CONSTANT, IMPORTED RATHER THAN RETYPED. How far from the
+  // baseline still counts as sitting on it is a decision the app makes; a
+  // harness that carried its own 2 would keep reporting the old answer after the
+  // app changed its mind, and nothing would say so.
+  const { BASELINE_TOLERANCE_PX: baselineTolerancePx } = await import(
+    path.join(engineDir, 'core/barInterval.js')
+  );
 
   const files = readdirSync(gtDir).filter((f) => f.endsWith('.json')).sort();
   const rows = [];
@@ -306,23 +396,65 @@ async function main() {
         continue;
       }
       const picks = dedupeColours(bars.map((b) => boxFillColour(img, b)));
-      const cats = useTicks ? declaredDividers(gt, family, bb) : null;
-      const boxes = [];
-      for (const target of picks) {
-        const r = runBarDetect(img.data, img.width, img.height, target, TOLERANCE, 'foreground', region, {
-          minDiameter: MIN_BLOB_DIAMETER,
-        }, cats ?? undefined);
-        if (!('error' in r)) boxes.push(...r.boxes.map(predBox));
-      }
-      const m = boxRecallIoU(bars.map(gtBox), boxes, 0.5);
+      const truth = bars.map(gtBox);
+
+      /** One detection run over every picked colour, unioned. */
+      const detect = (cats, base) => {
+        const boxes = [];
+        let joined = 0;
+        let suspects = 0;
+        for (const target of picks) {
+          const r = runBarDetect(img.data, img.width, img.height, target, TOLERANCE, 'foreground', region, {
+            minDiameter: MIN_BLOB_DIAMETER,
+          }, cats ?? undefined, base ? { atPixel: base.atPixel, tolerancePx: base.tolerancePx } : undefined);
+          if ('error' in r) continue;
+          boxes.push(...r.boxes.map(predBox));
+          joined += r.joinedAcrossBaseline ?? 0;
+          suspects += r.swatchSuspects?.length ?? 0;
+        }
+        return { ...boxRecallIoU(truth, boxes, 0.5), joined, suspects };
+      };
+
+      // ⚑ THE AUTO PATH -- the plot box and the colours, and nothing else. This
+      // is what the published table reports, and its fields keep their old names
+      // so that table still regenerates from this file unchanged.
+      const auto = detect(null, null);
+
+      // ⚑⚑ THE ASSISTED PATH -- what the SAME figure gives once the two things a
+      // person declares in the calibration walk are supplied: the marked
+      // category axis and the baseline the bars stand on. Never blended with the
+      // number above; `report.mjs` pools them separately and names both.
+      const cats = declaredDividers(gt, family, bb);
+      const base = declaredBaseline(gt, bb, barsAreHorizontal(gt), baselineTolerancePx);
+      const assisted = cats || base ? detect(cats, base) : null;
+
       rows.push({
         file: f, chartType, family, status: 'ok',
         picks: picks.length,
         monochrome: isMonochrome(picks),
         touching: barsTouch(bars),
-        matched: m.matched, gt: m.gt, pred: m.pred,
+        matched: auto.matched, gt: auto.gt, pred: auto.pred,
         ticks: cats ? cats.ticks : 0,
         tickKind: cats ? cats.kind : null,
+        assisted: assisted
+          ? {
+              // Exactly which declarations this figure's ground truth could
+              // supply. A figure missing one is NOT the full assisted path and
+              // must not be pooled as though it were.
+              supplied: [...(cats ? ['categories'] : []), ...(base ? ['baseline'] : [])],
+              matched: assisted.matched, pred: assisted.pred,
+              baseline: base ? { source: base.source, atPixel: +base.atPixel.toFixed(2) } : null,
+              // The two actions the baseline unlocks, counted so a change in the
+              // number above can be attributed rather than guessed at. `joined`
+              // ACTED (severed bars put back together); `suspects` only reported
+              // -- the app files every box, so the harness keeps every box.
+              joined: assisted.joined,
+              swatchSuspects: assisted.suspects,
+            }
+          : null,
+        // Why the assisted path could not be driven on this figure. The corpus's
+        // limitation, not the app's, and it is stated rather than absorbed.
+        assistedSkipped: cats || base ? null : 'no-declarable-inputs',
       });
       continue;
     }
@@ -359,6 +491,12 @@ async function main() {
         monochrome: isMonochrome(picks),
         score: m.score, within: m.within, gt: m.gt, pred: m.pred,
         series: seriesList.length,
+        // ⚑ NOT an omission. The calibration walk asks a scatter figure for the
+        // axes and the colour, and the harness already supplies both -- so for
+        // this family the assisted path IS the auto path, and saying so is the
+        // point of reporting them apart.
+        assisted: null,
+        assistedSkipped: 'no-assisted-input-for-this-family',
       });
       continue;
     }
@@ -405,6 +543,10 @@ async function main() {
       score: sumGt > 0 ? sumScore / sumGt : 0,
       within: sumWithin, gt: sumGt, pred: sumPred,
       series: seriesList.length,
+      // See the scatter row: a line figure's walk supplies the axes and the
+      // colour, both of which the harness already passes.
+      assisted: null,
+      assistedSkipped: 'no-assisted-input-for-this-family',
     });
   }
 
@@ -422,7 +564,15 @@ function summarise(rows) {
     console.log(`\n=== ${family}  (${list.length} figures)`);
     if (family === 'bar') {
       const tot = list.reduce((a, r) => ({ m: a.m + r.matched, g: a.g + r.gt }), { m: 0, g: 0 });
-      console.log(`  recall (IoU>=0.5): ${((100 * tot.m) / tot.g).toFixed(1)}%  (${tot.m}/${tot.g} bars)`);
+      // ⚑ AUTO ONLY, AND IT SAYS SO. The assisted numbers are pooled by
+      // `report.mjs`, which is also where the subsets that can carry them are
+      // worked out -- one implementation of that pooling, not two, so this
+      // running commentary cannot drift away from the table it precedes.
+      console.log(`  AUTO recall (IoU>=0.5): ${((100 * tot.m) / tot.g).toFixed(1)}%  (${tot.m}/${tot.g} bars)`);
+      const assistedFigs = list.filter((r) => r.assisted).length;
+      console.log(
+        `  ASSISTED path drivable on ${assistedFigs}/${list.length} figures -- run report.mjs for its numbers`
+      );
       for (const mono of [false, true]) {
         const sub = list.filter((r) => r.monochrome === mono);
         if (!sub.length) continue;

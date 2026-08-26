@@ -3,7 +3,7 @@
  *
  * ⚑ WHY THIS EXISTS: the published numbers must come from a measurement, not
  * from someone retyping a percentage into HTML. The first version of the website
- * table was hand-written and one of its figures was wrong — it quoted the
+ * table was hand-written and one of its figures was wrong - it quoted the
  * colour+touching cell (81.6%) as if it were the all-figures row (76.9%). A
  * number that is copied by hand will eventually be copied wrong, and there is no
  * way to notice.
@@ -21,6 +21,11 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 
+// ⚑ The SAME pooling the printed table uses. Two implementations of "which
+// figures can carry an assisted number" would eventually disagree, and the file
+// the website is generated from is the copy nobody re-reads.
+import { recall, suppliedKey, AUTO, ASSISTED } from './report.mjs';
+
 function args(argv) {
   const o = {};
   for (let i = 2; i < argv.length; i += 2) o[argv[i].replace(/^--/, '')] = argv[i + 1];
@@ -35,7 +40,7 @@ const load = (list) =>
     .filter((r) => r.status === 'ok');
 
 /** Pool a family's rows into the numbers the site shows. Pooled, never a mean of
- *  per-figure ratios — see harness/report.mjs for why the two differ here. */
+ *  per-figure ratios - see harness/report.mjs for why the two differ here. */
 function summarise(rows, family) {
   const list = rows.filter((r) => r.family === family);
   if (!list.length) return null;
@@ -79,7 +84,7 @@ const split5 = load(a.pmc5);
  * Manual drag-box capture, scored in DATA space by harness/score-manual.mjs.
  *
  * ⚑ This exists because the website carried "31 of 32 exact" from a 32-figure
- * pass in July whose harness no longer existed — the one number on the page that
+ * pass in July whose harness no longer existed - the one number on the page that
  * could not be regenerated while every other one could. An unreproducible
  * figure is the one a reader is entitled to doubt.
  */
@@ -107,6 +112,43 @@ function manualSummary(files) {
   };
 }
 
+/**
+ * The ASSISTED path, pooled -- and kept in its own object rather than folded
+ * into the per-type numbers above.
+ *
+ * ⚑⚑ WHY IT IS SEPARATE IN THE FILE AND NOT ONLY IN THE PRINTOUT. This file IS
+ * the published table; the website is generated from it. An assisted number
+ * blended into `types[].all.pct` would put the ceiling on the page under the
+ * label of the path a user gets with two clicks, which is the exact mistake this
+ * whole exercise exists to correct.
+ */
+function assistedSummary(rows) {
+  const bars = rows.filter((r) => r.family === 'bar' && r.status === 'ok');
+  const full = bars.filter((r) => suppliedKey(r) === 'both');
+  if (!full.length) return undefined;
+  const auto = recall(full, AUTO);
+  const assisted = recall(full, ASSISTED);
+  const notDrivable = {};
+  for (const r of bars) {
+    const k = suppliedKey(r);
+    if (k !== 'both') notDrivable[k] = (notDrivable[k] ?? 0) + 1;
+  }
+  return {
+    supplies: 'the marked category axis and the declared baseline, from the corpus\'s own annotation',
+    caveat: 'A CEILING: the declarations are the annotator\'s, placed exactly. A person marking an axis and clicking a baseline lands near them, not on them.',
+    figures: full.length,
+    figuresInFamily: bars.length,
+    bars: auto.g,
+    autoPct: +auto.pct.toFixed(1),
+    assistedPct: +assisted.pct.toFixed(1),
+    deltaPts: +(assisted.pct - auto.pct).toFixed(1),
+    joinedAcrossBaseline: full.reduce((a, r) => a + (r.assisted?.joined ?? 0), 0),
+    swatchSuspectsReported: full.reduce((a, r) => a + (r.assisted?.swatchSuspects ?? 0), 0),
+    baselineAtAxisLine: full.filter((r) => r.assisted?.baseline?.source === 'axis-end').length,
+    notDrivable,
+  };
+}
+
 const corpora = [
   {
     id: 'pmc',
@@ -129,7 +171,7 @@ const corpora = [
  * ⚑ This is the strongest single piece of evidence in the file and it is not a
  * headline number, so it would be easy to lose. PMC split_4 (Tasks 6a/6b) and
  * split_5 (Task 7) share no images. Scored identically, bar recall came back
- * 76.1% and 76.0% — a tenth of a point apart on 3,234 and 3,260 bars. A number
+ * 76.1% and 76.0% - a tenth of a point apart on 3,234 and 3,260 bars. A number
  * that reproduces on data it has never seen is a measurement; one that does not
  * is a property of the sample.
  */
@@ -151,6 +193,15 @@ const results = {
   measured: a.date ?? 'unknown',
   harness: 'plottracer-benchmarks',
   settings: { tolerance: 60, minBlobDiameter: 3, space: 'image (Task 6a)' },
+  // Which human inputs each reported path supplies. Stated in the file itself,
+  // because a number without this line drawn is not comparable to anything --
+  // the README asks every other digitiser for exactly this and had better carry
+  // it too.
+  paths: {
+    auto: 'the plot box and the element colours, and nothing else',
+    assisted: 'AUTO plus the two declarations a bar calibration walk asks for: the marked category axis and the baseline the bars stand on (bars only)',
+    manual: 'a full calibration from two tick labels plus the category axis, then two corners per bar; scored in DATA space',
+  },
   manual: manualSummary(a.manual),
   replication: split5.length
     ? ['bar', 'line', 'scatter'].map((f) => replication(split4, split5, f)).filter(Boolean)
@@ -161,6 +212,7 @@ const results = {
     kind: c.kind,
     figures: c.rows.length,
     types: ['bar', 'line', 'scatter'].map((f) => summarise(c.rows, f)).filter(Boolean),
+    assisted: assistedSummary(c.rows),
   })),
 };
 

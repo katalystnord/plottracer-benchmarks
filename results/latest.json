@@ -1,22 +1,28 @@
 {
-  "appVersion": "2.0.0-rc1",
-  "measured": "2026-08-01",
+  "appVersion": "2.3.0",
+  "measured": "2026-08-26",
   "harness": "plottracer-benchmarks",
   "settings": {
     "tolerance": 60,
     "minBlobDiameter": 3,
     "space": "image (Task 6a)"
   },
+  "paths": {
+    "auto": "the plot box and the element colours, and nothing else",
+    "assisted": "AUTO plus the two declarations a bar calibration walk asks for: the marked category axis and the baseline the bars stand on (bars only)",
+    "manual": "a full calibration from two tick labels plus the category axis, then two corners per bar; scored in DATA space"
+  },
   "manual": {
     "tolerance": "1% of the value range",
-    "figures": 262,
-    "bars": 4074,
-    "barsWithin": 3413,
-    "barsPct": 83.8,
-    "figuresFullyWithin": 211,
-    "figuresPct": 80.5,
+    "figures": 344,
+    "bars": 5778,
+    "barsWithin": 4674,
+    "barsPct": 80.9,
+    "figuresFullyWithin": 273,
+    "figuresPct": 79.4,
     "excluded": {
-      "no-calibration": 119,
+      "no-calibration": 33,
+      "no-categories": 4,
       "no-gt": 3
     }
   },
@@ -158,7 +164,24 @@
             "predPerGt": 3.05
           }
         }
-      ]
+      ],
+      "assisted": {
+        "supplies": "the marked category axis and the declared baseline, from the corpus's own annotation",
+        "caveat": "A CEILING: the declarations are the annotator's, placed exactly. A person marking an axis and clicking a baseline lands near them, not on them.",
+        "figures": 344,
+        "figuresInFamily": 384,
+        "bars": 5778,
+        "autoPct": 75.7,
+        "assistedPct": 76.2,
+        "deltaPts": 0.4,
+        "joinedAcrossBaseline": 3,
+        "swatchSuspectsReported": 7433,
+        "baselineAtAxisLine": 41,
+        "notDrivable": {
+          "categories": 36,
+          "baseline": 4
+        }
+      }
     },
     {
       "id": "adobe",
@@ -183,8 +206,18 @@
             "figures": 498
           },
           "greyscale": null,
-          "separated": null,
-          "touching": null
+          "separated": {
+            "pct": 32.1,
+            "matched": 528,
+            "total": 1645,
+            "figures": 168
+          },
+          "touching": {
+            "pct": 36.4,
+            "matched": 1852,
+            "total": 5094,
+            "figures": 330
+          }
         },
         {
           "family": "line",
@@ -232,7 +265,21 @@
           },
           "greyscale": null
         }
-      ]
+      ],
+      "assisted": {
+        "supplies": "the marked category axis and the declared baseline, from the corpus's own annotation",
+        "caveat": "A CEILING: the declarations are the annotator's, placed exactly. A person marking an axis and clicking a baseline lands near them, not on them.",
+        "figures": 498,
+        "figuresInFamily": 498,
+        "bars": 6739,
+        "autoPct": 35.3,
+        "assistedPct": 35.3,
+        "deltaPts": 0,
+        "joinedAcrossBaseline": 4,
+        "swatchSuspectsReported": 27959,
+        "baselineAtAxisLine": 0,
+        "notDrivable": {}
+      }
     }
   ]
 }

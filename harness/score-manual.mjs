@@ -3,7 +3,7 @@
  *
  * ⚑ WHY SEPARATE FROM score.mjs: that one measures AUTO-EXTRACT in image space,
  * isolating the detector from calibration. This measures the other half of the
- * product — a person calibrating the axes and dragging a box across each bar —
+ * product - a person calibrating the axes and dragging a box across each bar -
  * and the only honest question there is whether the NUMBER comes back right. So
  * it scores in data space, against `task6.output["data series"]`.
  *
@@ -12,7 +12,7 @@
  * `addDataPoint` twice per bar (the two corners a drag-box commits) and reads
  * `getTupleRows()`. Nothing about the capture path is reimplemented.
  *
- * ⚑⚑ THE CALIBRATION IS RECOVERED FROM THE GROUND TRUTH, not invented — which is
+ * ⚑⚑ THE CALIBRATION IS RECOVERED FROM THE GROUND TRUTH, not invented - which is
  * what makes this a measurement rather than a self-consistency check:
  *   task4.axes[y-axis][].tick_pt   pixel position of each tick, with an id
  *   task2.text_blocks[]            the id'd text of every label
@@ -22,6 +22,9 @@
  */
 import { readFileSync, readdirSync, writeFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
+
+import { numericTicksAlong, extremeTickPair } from './lib/gt.mjs';
+import { declaredDividers, declaredBaseline } from './score.mjs';
 
 function args(argv) {
   const o = {};
@@ -33,33 +36,6 @@ const engineDir = path.resolve(a.engine);
 const gtDir = path.resolve(a.gt);
 
 const { CalibrationSession, BAR_AXES_CONFIG } = await import(path.join(engineDir, 'engine/calibrationSession.js'));
-
-/** Numeric tick labels with their pixel positions, from the three tasks. */
-function ticks(gt, axis) {
-  const roles = new Map((gt.task3?.output?.text_roles ?? []).map((r) => [r.id, r.role]));
-  const texts = new Map((gt.task2?.output?.text_blocks ?? []).map((t) => [t.id, t.text]));
-  const out = [];
-  for (const t of gt.task4?.output?.axes?.[axis] ?? []) {
-    if (roles.get(t.id) !== 'tick_label') continue;
-    const raw = (texts.get(t.id) ?? '').replace(/[\s,]/g, '');
-    const v = Number(raw);
-    if (!Number.isFinite(v)) continue;
-    out.push({ px: t.tick_pt.x, py: t.tick_pt.y, value: v });
-  }
-  return out;
-}
-
-/** The two ticks furthest apart along the value axis — the pair a user would
- *  pick, and the pair that minimises the effect of a one-pixel misread. */
-function calibrationPair(list, vertical) {
-  if (list.length < 2) return null;
-  const key = (t) => (vertical ? t.py : t.px);
-  const sorted = [...list].sort((x, y) => key(x) - key(y));
-  const lo = sorted[0];
-  const hi = sorted[sorted.length - 1];
-  if (lo.value === hi.value || key(lo) === key(hi)) return null;
-  return [lo, hi];
-}
 
 const files = readdirSync(gtDir).filter((f) => f.endsWith('.json')).sort();
 const rows = [];
@@ -78,15 +54,30 @@ for (const f of files) {
     continue;
   }
 
-  const pair = calibrationPair(ticks(gt, vertical ? 'y-axis' : 'x-axis'), vertical);
+  const pair = extremeTickPair(numericTicksAlong(gt, vertical ? 'y' : 'x'), vertical);
   if (!pair) {
     // Not every figure carries two numeric tick labels the GT has typed out.
     rows.push({ file: f, status: 'no-calibration' });
     continue;
   }
 
+  // ⚑⚑ THE WALK IS FOUR STEPS, NOT TWO, SINCE v2.4. The category axis stopped
+  // being a fold-out offered after calibration and became a REQUIREMENT of the
+  // walk, so a harness that clicks two value ticks and calls `runCalibration` is
+  // describing a state the app can no longer be in -- it is refused, on every
+  // figure. Measured the day this was found: `setOptionValue` had also not
+  // existed on the session for some time and nothing noticed, because the only
+  // branch that called it (a HORIZONTAL bar chart) had never been reached.
+  // ⚑ Mirrors the app's own `walkCategoryAxis` test helper: two clicks on the
+  // category axis, then the count typed on the second.
+  const cats = declaredDividers(gt, 'bar', gt.task4?.output?._plot_bb);
+  if (!cats || cats.dividers.length < 2) {
+    rows.push({ file: f, status: 'no-categories' });
+    continue;
+  }
+
   const session = new CalibrationSession(BAR_AXES_CONFIG);
-  if (!vertical) session.setOptionValue('isRotated', true);
+  if (!vertical) session.setOption('isRotated', 'true');
   let ok = true;
   for (const t of pair) {
     // ⚑ Bar returns 'awaiting-value', not 'point-placed': its steps carry a
@@ -96,21 +87,55 @@ for (const f of files) {
     if (res !== 'awaiting-value' && res !== 'point-placed') ok = false;
     if (!session.confirmCalibrationValues([String(t.value)])) ok = false;
   }
+  // The two ENDS of the category axis, at the foot of the plot -- the outer edge
+  // of the first category and of the last, which is what the two prompts ask
+  // for. `declaredDividers` closes its list with the plot box, so those ends are
+  // its first and last entries.
+  const along = cats.dividers;
+  const bb = gt.task4.output._plot_bb;
+  const cross = cats.categoryAxis === 'y' ? bb.x0 : bb.y0 + bb.height;
+  const catPoint = (v) => (cats.categoryAxis === 'y' ? { x: cross, y: v } : { x: v, y: cross });
+  const c1 = catPoint(along[0]);
+  const c2 = catPoint(along[along.length - 1]);
+  session.handleCalibrationClick(c1.x, c1.y);
+  session.handleCalibrationClick(c2.x, c2.y);
+  if (!session.confirmCalibrationValues([String(along.length - 1)])) ok = false;
+
   if (!ok || !session.runCalibration()) {
     rows.push({ file: f, status: 'refused', error: session.getCalibrationError() });
     continue;
   }
 
-  // Two corners per bar — exactly what a drag-box commits.
+  // Two corners per bar - exactly what a drag-box commits.
   for (const b of bars) {
     session.addDataPoint(b.x0, b.y0);
     session.addDataPoint(b.x0 + b.width, b.y0 + b.height);
   }
 
-  const read = session
-    .getTupleRows()
-    .map((r) => r.derived)
-    .filter((v) => typeof v === 'number');
+  // ⚑⚑ A BAR DOES NOT ALWAYS HAVE A `Value`, AND SINCE v2.3 IT SAYS SO. When a
+  // bar's near end does not sit on the declared baseline the record stops
+  // reporting one baseline-relative number and reports the INTERVAL's two
+  // measured ends instead -- `derived` is null and `interval` carries min/max.
+  // A truncated value axis (this corpus is full of them: bars drawn from 30 to
+  // 60) is exactly that case.
+  // ⚠️ Reading `derived` alone therefore scored NINE figures at zero that had
+  // been perfect, and it looked like a regression in the app. It was this
+  // harness reading a column the record no longer always fills.
+  // ▶ The corpus's own `data series` y is the bar's VALUE -- its far end -- so
+  // that is what is compared: the end further from the baseline. Measured off
+  // the pixels, not chosen by which number looks better.
+  const baseline = declaredBaseline(gt, bb, !vertical, 2);
+  const valuePixel = (pt) => (vertical ? pt.py : pt.px);
+  const farEnd = (r) => {
+    if (typeof r.derived === 'number') return r.derived;
+    if (!r.interval || r.points?.length !== 2) return null;
+    if (!baseline) return null;
+    const [a, b] = r.points;
+    const far = Math.abs(valuePixel(a) - baseline.atPixel) >= Math.abs(valuePixel(b) - baseline.atPixel) ? a : b;
+    const v = far.data?.[0];
+    return typeof v === 'number' ? v : null;
+  };
+  const read = session.getTupleRows().map(farEnd).filter((v) => typeof v === 'number');
 
   // ⚑ Greedy nearest-match on VALUE, because bar order is capture order and the
   // corpus's series order is its own. Matching by position would score the
@@ -133,7 +158,7 @@ for (const f of files) {
     const span = Math.max(...truth) - Math.min(...truth) || Math.abs(target) || 1;
     const rel = bestD / span;
     errors.push(rel);
-    // 1% of the value range — tighter than the competition's 5% image tolerance,
+    // 1% of the value range - tighter than the competition's 5% image tolerance,
     // because a hand-placed corner should land on the bar's own edge.
     if (rel <= 0.01) within++;
   }

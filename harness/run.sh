@@ -7,8 +7,12 @@ mkdir -p work out
 
 harness/build-engine.sh "$PT" work/engine-js
 
-# ⚑⚑ BOTH PMC SPLITS, POOLED. The published table is 262 figures over splits 4
-# AND 5, and this script used to decode and score split_4 alone -- so the one
+# ⚑ The harness's own cases run first. It has produced five numbers that looked
+# like measurements and were not, so "the scorer compiled" is not the bar.
+node --test harness/__tests__/assisted.test.mjs
+
+# ⚑⚑ BOTH PMC SPLITS, POOLED. The published table is 384 bar figures over splits
+# 4 AND 5, and this script used to decode and score split_4 alone -- so the one
 # command the README points at ("Reproduce with harness/run.sh") produced
 # DIFFERENT NUMBERS from the table it claimed to reproduce. Anyone checking our
 # work would have found a mismatch and had no way to tell whether the tool or
@@ -16,6 +20,7 @@ harness/build-engine.sh "$PT" work/engine-js
 # the fix is to score each split and hand it both.
 PMC=work/ICPR2022_CHARTINFO_UB_UNITEC_PMC_TEST_v2.1
 PMC_OUT=()
+MANUAL_OUT=()
 if [ -d "$PMC" ]; then
   for split in split_4 split_5; do
     images="$PMC/chart_images/$split/images"
@@ -28,7 +33,14 @@ if [ -d "$PMC" ]; then
     node harness/score.mjs --engine work/engine-js \
       --gt "$gt" --rgba "work/rgba/pmc-test-${split}" \
       --type bar,line,scatter --out "out/pmc-${split}.json"
+    # ⚑ THE OTHER HALF OF THE PRODUCT, and it is not optional. `score.mjs`
+    # measures detection in IMAGE space; this drives the app's real
+    # `CalibrationSession` through the whole four-step bar walk and asks whether
+    # the NUMBER comes back right, in data space.
+    node harness/score-manual.mjs --engine work/engine-js \
+      --gt "$gt" --out "out/manual-${split}.json"
     PMC_OUT+=("out/pmc-${split}.json")
+    MANUAL_OUT+=("out/manual-${split}.json")
   done
 fi
 
@@ -44,3 +56,15 @@ echo; echo "===== UB-UNITEC PMC (splits 4 + 5, pooled)"
 [ ${#PMC_OUT[@]} -gt 0 ] && node harness/report.mjs "${PMC_OUT[@]}"
 echo; echo "===== Adobe CHART-Synthetic"
 [ -f out/adobe.json ] && node harness/report.mjs out/adobe.json
+
+# ⚑ ONE canonical results file, because the website table is generated from it
+# and a percentage retyped into HTML will eventually be retyped wrong.
+if [ ${#PMC_OUT[@]} -eq 2 ]; then
+  node harness/emit-results.mjs \
+    --version "$(node -p "require('$PT/package.json').version")" \
+    --date "$(date +%F)" \
+    --pmc "${PMC_OUT[0]}" --pmc5 "${PMC_OUT[1]}" \
+    --adobe out/adobe.json \
+    --manual "$(IFS=,; echo "${MANUAL_OUT[*]}")" \
+    --out results/latest.json
+fi
