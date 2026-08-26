@@ -7,13 +7,13 @@
  * trace, and it asks one question the pooled number cannot:
  *
  *   ⚑⚑ OF THE BARS THAT WERE ACTUALLY LOST TO A MERGE, HOW MANY DOES THE SPLIT
- *      RECOVER — and for the ones it does not, how close does it get?
+ *      RECOVER - and for the ones it does not, how close does it get?
  *
  * "Lost to a merge" is defined from the data, not assumed: a ground-truth bar
  * that the BASELINE fails to match, whose best-overlapping predicted box also
  * covers another ground-truth bar. That is a merge, and it is the only failure
  * this feature could ever fix. Everything else the splitter does is noise on
- * bars that were already right or already hopeless — which is exactly what a
+ * bars that were already right or already hopeless - which is exactly what a
  * pooled recall number cannot separate.
  *
  * It imports score.mjs's OWN helpers (that file now runs `main()` only when it
@@ -134,7 +134,7 @@ for (const f of readdirSync(gtDir).filter((n) => n.endsWith('.json')).sort()) {
 
   // ⚑⚑ THE QUESTION THE WIDTH RATIO RAISES: is the merged run something a
   // CATEGORY divider could ever cut? A run that lies wholly inside one band is
-  // two bars of the same category — adjacent series in a grouped chart whose
+  // two bars of the same category - adjacent series in a grouped chart whose
   // shades fell inside one tolerance ball. No category divider crosses it, so
   // this mechanism cannot touch it however well it is placed.
   const interior = cats ? cats.dividers.slice(1, -1) : [];

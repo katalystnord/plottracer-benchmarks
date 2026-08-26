@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Can a hatch signature stand in for colour? — the experiment that decides it.
+"""Can a hatch signature stand in for colour? - the experiment that decides it.
 
 Detection is settled: a hatch shows up as a 1D frequency peak, ~32px period,
 with a clean separation from unhatched bars. The question that matters is
 different and harder: **can two hatches be told APART**, so that the pattern
 identifies a series the way colour does?
 
-That matters because greyscale is our largest scope boundary — colour-keyed
+That matters because greyscale is our largest scope boundary - colour-keyed
 extraction loses ~10 points on bars and ~37 on lines when a figure is
-monochrome — and hatching is exactly the channel authors reach for when colour
+monochrome - and hatching is exactly the channel authors reach for when colour
 is unavailable. Same slot in the design, different encoding.
 
 THE TEST: on GREYSCALE bar figures, compute a (period, angle) signature per bar,
@@ -18,7 +18,7 @@ series identity, those should agree more often than chance.
 
 ⚑ ANGLE IS GATED ON PROMINENCE, and that is the correction from the first probe.
 Taking the strongest 2D peak of every bar produced angles uniform over
-0-180 degrees — because a solid or small bar has no peak, only noise, and noise
+0-180 degrees - because a solid or small bar has no peak, only noise, and noise
 has an arbitrary direction. An angle is only meaningful where the peak is
 genuinely dominant, so bars below the threshold are dropped rather than clustered.
 
@@ -152,7 +152,7 @@ def main() -> int:
     print(f"  with >=2 bars carrying a strong hatch (prominence >= {PROMINENCE_MIN:g}) : {total}")
     if not total:
         print("\n  Nothing to cluster. Greyscale bars in this corpus are mostly SOLID,")
-        print("  not hatched — which would answer the question in the negative.")
+        print("  not hatched - which would answer the question in the negative.")
         return 0
     print(f"  clusters == series count           : {agree}/{total}  ({100 * agree / total:.0f}%)")
     diffs = [abs(r[1] - r[2]) for r in rows]

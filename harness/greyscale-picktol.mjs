@@ -4,7 +4,7 @@
  * ⚑⚑ WHY THIS FOLLOWS FROM THE LAST RESULT, RATHER THAN BEING ANOTHER GUESS.
  * `greyscale-equivalence.mjs` showed that a contrast stretch IS a tolerance
  * change (163 of 192 figures behave identically to the untouched image at
- * tolerance 60/scale). That kills preprocessing as a mechanism — but it also
+ * tolerance 60/scale). That kills preprocessing as a mechanism - but it also
  * says where the mechanism actually lives: in the TOLERANCE. And the tolerance
  * today is one global constant, 60, serving two populations that want different
  * numbers. Measured: at 60 greyscale gets 66.6% and colour 82.2%; at 25
@@ -12,14 +12,14 @@
  * both, which is why the global sweep settled on 60 and stopped.
  *
  * THE IDEA: stop using a global constant. The app already knows the colours the
- * user clicked, and the failure mode is two of them sitting inside one ball —
+ * user clicked, and the failure mode is two of them sitting inside one ball -
  * so give each pick a radius that CANNOT reach its nearest neighbour. Half the
  * distance to the closest other pick is the largest radius for which no two
  * picks can claim the same pixel. On a colour figure the picks are far apart, so
  * the radius stays at the shipped 60 and nothing changes; on a greyscale figure
  * whose shades sit 30 apart it tightens to 15, where it has to.
  *
- * ⚑ It obeys the same rule as every other arm: it uses ONLY what the app has —
+ * ⚑ It obeys the same rule as every other arm: it uses ONLY what the app has -
  * the picks are the user's own clicks, not the ground truth.
  *
  * ⚑ THE PRIZE IS BOUNDED, and the bound is measured here as the `tol-25` arm:
@@ -28,7 +28,7 @@
  * building, so the result can be read against what was available.
  *
  * `tolerance` in colorFilter.ts is a Euclidean RGB distance, so that is the
- * metric used here — the same one the detector will apply.
+ * metric used here - the same one the detector will apply.
  *
  * Usage: node harness/greyscale-picktol.mjs --engine <dir> --gt <dir> --rgba <dir>
  */
@@ -90,7 +90,7 @@ const mono = (cs) => cs.every((c) => Math.max(...c) - Math.min(...c) < 30);
 /** The detector's own metric: Euclidean RGB. */
 const rgbDist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 
-/** Half the distance to the nearest OTHER pick — the largest radius for which no
+/** Half the distance to the nearest OTHER pick - the largest radius for which no
  * two picks can claim the same pixel. Capped at the shipped tolerance so this can
  * only ever tighten, never loosen; floored so a bar's own JPEG noise still fits. */
 function voronoiTolerances(picks, floor) {

@@ -5,8 +5,8 @@
  * Two rules are used, and WHICH one applies to WHICH chart type is a deliberate
  * choice that is stated in README.md rather than buried here:
  *
- *   boxRecallIoU   — bars. A bar is an AREA, so overlap is the natural question.
- *   pointScore     — scatter and lines. A marker is a POSITION, so distance is.
+ *   boxRecallIoU   - bars. A bar is an AREA, so overlap is the natural question.
+ *   pointScore     - scatter and lines. A marker is a POSITION, so distance is.
  *
  * `pointScore` is the CHART-Infographics competition's own task-6a rule, adopted
  * rather than invented:  score = SUM max(0, 1 - D/T) / max(#GT, #pred),  where D

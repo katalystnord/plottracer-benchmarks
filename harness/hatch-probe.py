@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Is a hatch pattern detectable as a frequency peak? — an experiment, not a feature.
+"""Is a hatch pattern detectable as a frequency peak? - an experiment, not a feature.
 
 David's hypothesis: a hatch fill is a directional repeating pattern, so it is a
 wave, so a Fourier/wavelet method should see it where flood-fill connectivity
@@ -9,7 +9,7 @@ THE TEST, and it needs a control or it proves nothing: take the ground truth's
 own bar boxes, cut the patch inside each one, and ask the 2D FFT how strong the
 strongest periodic component is. Run it over BOTH corpora. Adobe's bars are
 hatched; PMC's mostly are not. If the hypothesis holds, the two distributions
-separate — and if they do not, the idea is dead cheaply.
+separate - and if they do not, the idea is dead cheaply.
 
 Measured per bar:
   prominence  peak magnitude / median magnitude in the annulus. How much the
@@ -17,8 +17,8 @@ Measured per bar:
   period      pixels per repeat, from the peak's radius.
   angle       degrees, from the peak's position. The hatch direction.
 
-⚑ Deliberately plain FFT rather than a Gabor bank. Gabor buys LOCALISATION —
-knowing where in the image a texture sits — and here the ground truth already
+⚑ Deliberately plain FFT rather than a Gabor bank. Gabor buys LOCALISATION -
+knowing where in the image a texture sits - and here the ground truth already
 says where each bar is. The question at this stage is only whether the signal
 exists at all; localisation is the next problem, not this one.
 
@@ -41,7 +41,7 @@ def read_rgba(path: Path):
 
 
 def luma(patch):
-    # Rec. 601 — a hatch is usually black ink on a light or mid fill, so
+    # Rec. 601 - a hatch is usually black ink on a light or mid fill, so
     # luminance is where the pattern lives regardless of the fill's hue.
     return (0.299 * patch[:, :, 0] + 0.587 * patch[:, :, 1] + 0.114 * patch[:, :, 2]).astype(np.float64)
 
@@ -53,7 +53,7 @@ def hatch_signature_1d(gray, horizontal):
     a 2D FFT of the patch and looked for the strongest off-origin peak. On the
     one bar measured by hand it was right, but in aggregate it was meaningless:
     most bars are solid or small, so their "peak" is noise at an arbitrary
-    angle — which is exactly what the diagnostics said, an angle IQR of 88-90
+    angle - which is exactly what the diagnostics said, an angle IQR of 88-90
     degrees over a 0-180 range, i.e. uniform.
 
     A hatch crossing a bar is a periodic signal ALONG THE BAR'S LENGTH. Collapse

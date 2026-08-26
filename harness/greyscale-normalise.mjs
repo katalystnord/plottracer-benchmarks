@@ -1,20 +1,20 @@
 /**
  * Greyscale figures encode series by SHADE, and 35% of the gaps between
- * adjacent bar greys are narrower than the app's default tolerance of 60 — so
+ * adjacent bar greys are narrower than the app's default tolerance of 60 - so
  * two series sit in one tolerance ball and match as one colour. Lowering the
  * tolerance fixes that and breaks colour figures (measured: 72.2% grey / 76.7%
  * colour at tol 25, against 66.6 / 82.2 shipped). Stretching the greys widens
  * the GAPS instead, so the SAME ruler separates them.
  *
- * `greyscale-tolerance.mjs` already measured the crudest stretch — min/max over
- * the whole plot box — at 68.0% grey / 82.7% colour: both improve, no trade.
+ * `greyscale-tolerance.mjs` already measured the crudest stretch - min/max over
+ * the whole plot box - at 68.0% grey / 82.7% colour: both improve, no trade.
  * That is a FLOOR, and the reason is visible in the arithmetic: the extremes of
  * a plot box are axis INK (near 0) and paper WHITE (near 255), so the stretch is
  * very nearly the identity and the bar shades barely move. This file asks
  * whether a stretch aimed at the shades that actually matter does better.
  *
  * ⚑⚑ THE RULE EVERY ARM HERE OBEYS: an arm may use only what the APP has.
- * The harness knows where the bars are; the app does not — it has the plot box
+ * The harness knows where the bars are; the app does not - it has the plot box
  * and the colours the user clicked, and nothing else. So no arm may look at
  * `task6` to decide its range. `pick-range` is the interesting one precisely
  * because the user's own picks ARE "the bars' own range", declared by a human
@@ -26,7 +26,7 @@
  * earn extra picks would be measuring a different person, not a different
  * algorithm.
  *
- * Every arm is a 256-entry LUT applied to all three channels alike — a
+ * Every arm is a 256-entry LUT applied to all three channels alike - a
  * near-neutral pixel stays near-neutral and nothing acquires a hue the figure
  * never drew.
  *
@@ -140,7 +140,7 @@ const ARMS = {
   /** The shipped behaviour: no preprocessing at all. */
   none: () => IDENTITY,
 
-  /** The known floor — min/max over the whole plot box. */
+  /** The known floor - min/max over the whole plot box. */
   'box-minmax': (img, region) => {
     const { hist } = boxHistogram(img, region);
     let lo = 0;
@@ -151,8 +151,8 @@ const ARMS = {
   },
 
   /**
-   * The same stretch, but ignoring the 2% tails. A single stray dark pixel — a
-   * tick label's antialiasing, a JPEG artefact — pins min/max at the extremes
+   * The same stretch, but ignoring the 2% tails. A single stray dark pixel - a
+   * tick label's antialiasing, a JPEG artefact - pins min/max at the extremes
    * and makes the whole stretch a no-op; a percentile cannot be held hostage
    * that way.
    */
@@ -165,7 +165,7 @@ const ARMS = {
    * Stretch over the INK, not the paper. The plot box is mostly background, so
    * the dominant histogram mode IS the background; drop it and its immediate
    * neighbours, and what is left is what was drawn. This is the app-realizable
-   * proxy for "the bars' own range" — no bar has to be found first.
+   * proxy for "the bars' own range" - no bar has to be found first.
    */
   'fg-range': (img, region) => {
     const { hist } = boxHistogram(img, region);
@@ -181,7 +181,7 @@ const ARMS = {
 
   /**
    * ⚑ The bars' own range, DECLARED. The user's picks are the shades the figure
-   * uses for its series — the app has them the moment the user has clicked, and
+   * uses for its series - the app has them the moment the user has clicked, and
    * it never has to guess which pixels are bars. A margin either side keeps a
    * bar's own interior noise inside the mapped range instead of clipping it flat.
    */
@@ -193,7 +193,7 @@ const ARMS = {
   /**
    * Histogram equalisation over the plot box: spend the output range where the
    * pixels actually are. Unlike a stretch this pulls apart shades that are close
-   * AND common, which is exactly the merged-series case — but it is non-linear,
+   * AND common, which is exactly the merged-series case - but it is non-linear,
    * so it can also compress a gap elsewhere.
    */
   equalise: (img, region) => {

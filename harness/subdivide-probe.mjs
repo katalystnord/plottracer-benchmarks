@@ -11,12 +11,12 @@
  *
  * Every one of those numbers says the same thing: the cut is at the wrong
  * GRANULARITY. So this asks the question that decides whether to build
- * anything further — IF each band were subdivided into its own bars, what would
+ * anything further - IF each band were subdivided into its own bars, what would
  * recall be?
  *
  * ⚑ THIS IS A CEILING, and deliberately so. It takes the number of bars per
  * band from the ground truth, which the app does not have. The app's version of
- * this input is a DECLARATION — the user already types a category count, and
+ * this input is a DECLARATION - the user already types a category count, and
  * "how many bars per category" is the same kind of answer about the same
  * figure. What the ceiling says is whether that declaration would be worth
  * asking for. If recall barely moves even when the count is perfect, no UI can

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Install once per clone:  git config core.hooksPath tools/git-hooks
+#
+# ⚑ The harness's own cases run here, not only in run.sh. This repo publishes
+# numbers; five of its bugs have each produced one that looked like a
+# measurement, so "it parsed" is not the bar for a commit.
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+tools/no-em-dashes.sh
+node --test harness/__tests__/assisted.test.mjs >/dev/null

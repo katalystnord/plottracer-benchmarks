@@ -2,14 +2,14 @@
  * How much of the conditional split's 82.2% ceiling survives a REAL test?
  *
  * `subdivide-probe.mjs` measured that per-bar dividers fix 197 bars and break
- * 577, because the split cuts every run crossing a divider — including runs that
+ * 577, because the split cuts every run crossing a divider - including runs that
  * were already one correct bar. An oracle that never cut a correct bar would
  * reach 82.2% from 76.1%. That oracle does not exist. The app's version of it is
  * a WIDTH TEST: a run wider than one slot is a run holding more than one bar, so
  * cut it; a run that already fits a slot is one bar, so leave it alone.
  *
  * ⚑ THE PIECES MUST BE THE APP'S OWN. A split piece is boxed by its INK, not by
- * its band (commit 2dc2a57) — bars rarely fill their bands, and a harness that
+ * its band (commit 2dc2a57) - bars rarely fill their bands, and a harness that
  * cut boxes geometrically would score a piece the app never produces. So this
  * runs the detector TWICE per colour, unsplit and per-bar-split, and composes:
  * keep the unsplit run where the width test says one bar, and take the app's own
@@ -23,7 +23,7 @@
  *
  * Still a CEILING in one respect, stated so it is not misread: the per-bar
  * dividers come from the ground truth's own bar counts. This isolates the
- * question asked — how much of the prize the WIDTH TEST costs — from the
+ * question asked - how much of the prize the WIDTH TEST costs - from the
  * separate question of whether a user can declare the count.
  *
  * Usage: node harness/conditional-split-probe.mjs --engine <dir> --gt <dir> --rgba <dir>

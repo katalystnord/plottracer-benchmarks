@@ -1,5 +1,5 @@
 /**
- * WHY normalisation does not convert — the hypothesis, stated so it can fail.
+ * WHY normalisation does not convert - the hypothesis, stated so it can fail.
  *
  * `greyscale-normalise.mjs` measured every app-realizable contrast stretch and
  * none of them beat the crude one they were meant to beat. This asks whether
@@ -10,13 +10,13 @@
  * Multiplying every pixel by s multiplies the gap between two series by s AND
  * the spread inside one bar by s. At a fixed tolerance of 60 the detector is
  * therefore doing exactly what it would do on the ORIGINAL image at a tolerance
- * of 60/s — no more, no less. If that is right, normalisation is not a new
+ * of 60/s - no more, no less. If that is right, normalisation is not a new
  * mechanism; it is the tolerance sweep already on the spent list, wearing a hat.
  *
  * THE PREDICTION, which is sharp enough to be wrong: for each figure, take the
  * scale factor s the stretch actually chose, and run the UNTOUCHED image at
  * tolerance 60/s. Per figure, the two should match. A pooled agreement would
- * prove little — two different mechanisms can land on the same total — so this
+ * prove little - two different mechanisms can land on the same total - so this
  * reports the per-figure disagreement, which is what can refute it.
  *
  * ⚑ Clipping is the one part of a stretch that is NOT a rescale: values outside

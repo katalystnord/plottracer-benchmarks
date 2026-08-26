@@ -2,7 +2,7 @@
  * Is the default colour tolerance too coarse for GREYSCALE figures?
  *
  * The measurement that prompted this: across 101 greyscale bar figures, the
- * number of distinct grey LEVELS matches the series count 81% of the time — so
+ * number of distinct grey LEVELS matches the series count 81% of the time - so
  * the figures do encode series by shade, and the signal is there. But 35% of the
  * gaps between adjacent bar greys are SMALLER than the app's default tolerance
  * of 60, meaning two different series sit inside one tolerance ball and match as
@@ -73,7 +73,7 @@ const TOLERANCES = [60, 45, 35, 25, 18, 12, 8];
  *
  * ⚑ THE POINT, and it is why this beats lowering the tolerance: greyscale
  * figures encode series by shade, and 35% of the gaps between adjacent bar greys
- * are smaller than the tolerance — so two series merge. Lowering the tolerance
+ * are smaller than the tolerance - so two series merge. Lowering the tolerance
  * fixes that and breaks colour figures, because one global ruler cannot serve
  * both. Stretching the greys widens the GAPS instead, so the SAME tolerance
  * separates them. Colour figures are left alone.
@@ -154,7 +154,7 @@ console.log('tol   greyscale recall      colour recall');
 for (const tol of TOLERANCES) {
   const acc = { grey: [0, 0], colour: [0, 0] };
   for (const fig of figures) {
-    // Dedupe picks at THIS tolerance — a user cannot distinguish two colours the
+    // Dedupe picks at THIS tolerance - a user cannot distinguish two colours the
     // detector will merge anyway, so the pick count has to follow the setting.
     const kept = [];
     for (const c of fig.picks) {
