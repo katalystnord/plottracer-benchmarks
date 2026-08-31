@@ -21,6 +21,7 @@ node --test harness/__tests__/assisted.test.mjs
 PMC=work/ICPR2022_CHARTINFO_UB_UNITEC_PMC_TEST_v2.1
 PMC_OUT=()
 MANUAL_OUT=()
+OCR_OUT=()
 if [ -d "$PMC" ]; then
   for split in split_4 split_5; do
     images="$PMC/chart_images/$split/images"
@@ -39,8 +40,16 @@ if [ -d "$PMC" ]; then
     # the NUMBER comes back right, in data space.
     node harness/score-manual.mjs --engine work/engine-js \
       --gt "$gt" --out "out/manual-${split}.json"
+    # ⚑ READING THE TEXT is its own capability and its own number: what the app
+    # recovers of a chart's NAMES rather than its values. Scored against the
+    # corpus's own typed text and role labels, horizontal tick labels only -
+    # which is 95.7% of these charts, measured.
+    node harness/score-ocr.mjs \
+      --gt "$gt" --rgba "work/rgba/pmc-test-${split}" \
+      --plottracer "$PT" --out "out/ocr-${split}.json"
     PMC_OUT+=("out/pmc-${split}.json")
     MANUAL_OUT+=("out/manual-${split}.json")
+    OCR_OUT+=("out/ocr-${split}.json")
   done
 fi
 
@@ -66,5 +75,6 @@ if [ ${#PMC_OUT[@]} -eq 2 ]; then
     --pmc "${PMC_OUT[0]}" --pmc5 "${PMC_OUT[1]}" \
     --adobe out/adobe.json \
     --manual "$(IFS=,; echo "${MANUAL_OUT[*]}")" \
+    --ocr "$(IFS=,; echo "${OCR_OUT[*]}")" \
     --out results/latest.json
 fi

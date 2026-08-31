@@ -77,6 +77,43 @@ function summarise(rows, family) {
 }
 
 const a = args(process.argv);
+
+/**
+ * READING THE TEXT, reported on its own (David, 2026-08-31: *"We want to add the
+ * OCR numbers to the benchmark results as a separate reported value"*).
+ *
+ * ⚑⚑ SEPARATE BECAUSE IT IS A DIFFERENT CAPABILITY. Every other number here is
+ * about recovering VALUES; this is about recovering the NAMES a chart carries. A
+ * tool can be excellent at one and useless at the other, and pooling them would
+ * hide both. It is scored by harness/score-ocr.mjs against the corpus's own
+ * typed text (`task2`) and role labels (`task3`) - not against anything of ours.
+ *
+ * ⚑ HORIZONTAL LABELS ONLY, and the scope is itself a measurement: 95.7% of the
+ * 887 annotated charts print their tick labels horizontally, and 95.4% of
+ * individual labels sit at 0 degrees. The angled remainder is a separate
+ * capability, so `anglesSkipped` is reported rather than folded in - a number
+ * that quietly mixes two abilities is the thing this file exists to prevent.
+ */
+function ocrSummary(files) {
+  if (!files) return undefined;
+  const rows = String(files)
+    .split(',')
+    .filter(Boolean)
+    .map((f) => JSON.parse(readFileSync(f, 'utf8')));
+  if (rows.length === 0) return undefined;
+  const sum = (k) => rows.reduce((n, r) => n + (r[k] ?? 0), 0);
+  const labels = sum('labels');
+  return {
+    scope: 'tick labels, horizontal only (within 5 degrees of level)',
+    match: 'exact string, after folding the corpus own literal \\n line-break marker to a space',
+    charts: sum('charts'),
+    labels,
+    exact: sum('exact'),
+    pct: labels ? Math.round((1000 * sum('exact')) / labels) / 10 : 0,
+    anglesSkipped: sum('anglesSkipped'),
+    splits: rows.map((r) => ({ split: r.split, charts: r.charts, labels: r.labels, exact: r.exact, pct: r.pct })),
+  };
+}
 const split4 = load(a.pmc);
 const split5 = load(a.pmc5);
 
@@ -203,6 +240,7 @@ const results = {
     manual: 'a full calibration from two tick labels plus the category axis, then two corners per bar; scored in DATA space',
   },
   manual: manualSummary(a.manual),
+  ocr: ocrSummary(a.ocr),
   replication: split5.length
     ? ['bar', 'line', 'scatter'].map((f) => replication(split4, split5, f)).filter(Boolean)
     : undefined,
