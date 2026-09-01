@@ -24,7 +24,7 @@ import { readFileSync, readdirSync, writeFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 
 import { numericTicksAlong, extremeTickPair } from './lib/gt.mjs';
-import { declaredDividers, declaredBaseline } from './score.mjs';
+import { declaredDividers, declaredBaseline, readRgba } from './score.mjs';
 
 function args(argv) {
   const o = {};
@@ -36,6 +36,20 @@ const engineDir = path.resolve(a.engine);
 const gtDir = path.resolve(a.gt);
 
 const { CalibrationSession, BAR_AXES_CONFIG } = await import(path.join(engineDir, 'engine/calibrationSession.js'));
+
+/**
+ * ⚑ `--ticks detect` asks the session to find the figure's OWN tick marks and
+ * move the category ticks onto them (v2.4), instead of leaving them generated
+ * evenly between the two clicked axis ends. Off by default so the published
+ * number keeps meaning what it meant.
+ */
+const useDetectedTicks = a.ticks === 'detect';
+const rgbaDir = a.rgba ? path.resolve(a.rgba) : null;
+if (useDetectedTicks && !rgbaDir) {
+  console.error('--ticks detect needs --rgba <dir> (detection reads the figure\'s pixels)');
+  process.exit(2);
+}
+let detectedFits = 0, detectedMisfit = 0, detectedNoAxis = 0;
 
 const files = readdirSync(gtDir).filter((f) => f.endsWith('.json')).sort();
 const rows = [];
@@ -104,6 +118,17 @@ for (const f of files) {
   if (!ok || !session.runCalibration()) {
     rows.push({ file: f, status: 'refused', error: session.getCalibrationError() });
     continue;
+  }
+
+  // ⚑ The v2.4 tick detector, asked for explicitly. It moves the category ticks
+  // from an even division onto the marks the figure itself draws.
+  if (useDetectedTicks) {
+    let img = null;
+    try { img = readRgba(path.join(rgbaDir, f.replace(/\.json$/, '.rgba'))); } catch { img = null; }
+    const found = img ? session.detectCategoryTicks(img) : null;
+    if (!found) detectedNoAxis++;
+    else if (found.fits && session.applyDetectedCategoryTicks(found.positions)) detectedFits++;
+    else detectedMisfit++;
   }
 
   // Two corners per bar - exactly what a drag-box commits.
@@ -183,6 +208,9 @@ const ok = rows.filter((r) => r.status === 'ok');
 const tw = ok.reduce((s, r) => s + r.within, 0);
 const tt = ok.reduce((s, r) => s + r.truth, 0);
 const exact = ok.filter((r) => r.within === r.truth).length;
+if (useDetectedTicks) {
+  console.log(`tick detection : applied ${detectedFits}, did not fit ${detectedMisfit}, no axis/pixels ${detectedNoAxis}`);
+}
 console.log(`figures scored : ${ok.length}`);
 console.log(`  every bar within 1% : ${exact}/${ok.length}`);
 console.log(`  bars within 1%      : ${tw}/${tt}  (${((100 * tw) / tt).toFixed(1)}%)`);
