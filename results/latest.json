@@ -1,6 +1,6 @@
 {
-  "appVersion": "2.3.0",
-  "measured": "2026-08-26",
+  "appVersion": "2.4.0",
+  "measured": "2026-09-01",
   "harness": "plottracer-benchmarks",
   "settings": {
     "tolerance": 60,
@@ -25,6 +25,31 @@
       "no-categories": 4,
       "no-gt": 3
     }
+  },
+  "ocr": {
+    "scope": "tick labels, horizontal only (within 5 degrees of level)",
+    "match": "exact string, after folding the corpus own literal \\n line-break marker to a space",
+    "charts": 887,
+    "labels": 12751,
+    "exact": 10169,
+    "pct": 79.8,
+    "anglesSkipped": 608,
+    "splits": [
+      {
+        "split": "split_4",
+        "charts": 444,
+        "labels": 6610,
+        "exact": 5203,
+        "pct": 78.7
+      },
+      {
+        "split": "split_5",
+        "charts": 443,
+        "labels": 6141,
+        "exact": 4966,
+        "pct": 80.9
+      }
+    ]
   },
   "replication": [
     {
@@ -172,10 +197,10 @@
         "figuresInFamily": 384,
         "bars": 5778,
         "autoPct": 75.7,
-        "assistedPct": 76.2,
-        "deltaPts": 0.4,
+        "assistedPct": 76.9,
+        "deltaPts": 1.2,
         "joinedAcrossBaseline": 3,
-        "swatchSuspectsReported": 7433,
+        "swatchSuspectsReported": 7376,
         "baselineAtAxisLine": 41,
         "notDrivable": {
           "categories": 36,
@@ -273,10 +298,10 @@
         "figuresInFamily": 498,
         "bars": 6739,
         "autoPct": 35.3,
-        "assistedPct": 35.3,
-        "deltaPts": 0,
+        "assistedPct": 62,
+        "deltaPts": 26.7,
         "joinedAcrossBaseline": 4,
-        "swatchSuspectsReported": 27959,
+        "swatchSuspectsReported": 26978,
         "baselineAtAxisLine": 0,
         "notDrivable": {}
       }
