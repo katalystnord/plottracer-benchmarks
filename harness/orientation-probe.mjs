@@ -120,6 +120,54 @@ function measureCategoryAxis(boxes, tolPx) {
   };
 }
 
+
+/**
+ * RULE B - count how many DISTINCT perpendicular extents the fragments have.
+ *
+ * ⚑⚑ THE ASYMMETRY THAT RULE A LACKED, and it comes straight from what a hatch
+ * physically does. A hatch cuts one bar into slabs, and every slab is a SLICE OF
+ * THE SAME RECTANGLE: all thirty share that bar's left and right edges exactly.
+ * So if the categories really do run along x, the set of (minX,maxX) pairs over
+ * all fragments collapses to about one pair PER BAR. Read the same figure with
+ * the axes swapped and the "perpendicular extent" becomes each slab's own y
+ * band, which is different for every slab - about thirty pairs per bar.
+ *
+ * ▶ So the correct axis is the one with FEWER distinct perpendicular extents,
+ * and the ratio between the two counts is the confidence. Rule A asked which
+ * edge was most POPULOUS and a hatch out-votes the baseline; this asks which
+ * reading makes the fragments look like slices of the same shape, which is what
+ * they are.
+ *
+ * ⚠️ It is expected to be WEAK on unfragmented figures, and that is not a fault:
+ * whole bars have one extent per bar whichever way you read them, so the ratio
+ * sits near 1 and the rule abstains. Rule A already reads those at 95.5%.
+ */
+function distinctExtents(boxes, axis, tolPx) {
+  const lo = (b) => (axis === 'x' ? b.minX : b.minY);
+  const hi = (b) => (axis === 'x' ? b.maxX : b.maxY);
+  const seen = [];
+  for (const b of boxes) {
+    const l = lo(b), h = hi(b);
+    if (!seen.some((s) => Math.abs(s[0] - l) <= tolPx && Math.abs(s[1] - h) <= tolPx)) {
+      seen.push([l, h]);
+    }
+  }
+  return seen.length;
+}
+
+function measureByExtents(boxes, tolPx) {
+  if (boxes.length < 4) return null;
+  // Categories along x  =>  the perpendicular extent is the x extent.
+  const asX = distinctExtents(boxes, 'x', tolPx);
+  const asY = distinctExtents(boxes, 'y', tolPx);
+  if (asX === 0 || asY === 0) return null;
+  return {
+    categoryAxis: asX <= asY ? 'x' : 'y',
+    asX, asY,
+    ratio: Number((Math.max(asX, asY) / Math.min(asX, asY)).toFixed(3)),
+  };
+}
+
 async function main() {
   const a = parseArgs(process.argv);
   const engineDir = path.resolve(a.engine ?? 'work/engine-js');
@@ -162,9 +210,13 @@ async function main() {
     const tolPx = Math.max(2, Math.round(0.005 * Math.min(img.width, img.height)));
     const m = measureCategoryAxis(boxes, tolPx);
     if (!m) continue;
+    const e = measureByExtents(boxes, tolPx);
     rows.push({
       file: f, chartType: ct, truthAxis, measured: m.categoryAxis,
       correct: m.categoryAxis === truthAxis,
+      bMeasured: e ? e.categoryAxis : null,
+      bCorrect: e ? e.categoryAxis === truthAxis : null,
+      bRatio: e ? e.ratio : null, bAsX: e ? e.asX : null, bAsY: e ? e.asY : null,
       margin: Number(m.margin.toFixed(3)),
       hz: Number(m.horizontalBaseline.toFixed(3)),
       vt: Number(m.verticalBaseline.toFixed(3)),
@@ -173,6 +225,16 @@ async function main() {
     });
   }
 
+  const bRows = rows.filter((r) => r.bMeasured);
+  const bOk = bRows.filter((r) => r.bCorrect);
+  const bFrag = bRows.filter((r) => r.fragmented);
+  const bFragOk = bFrag.filter((r) => r.bCorrect);
+  console.log(`RULE B (distinct perpendicular extents)`);
+  console.log(`  axis read right    ${bOk.length}/${bRows.length}` +
+    (bRows.length ? `  (${(100 * bOk.length / bRows.length).toFixed(1)}%)` : ''));
+  console.log(`  of the FRAGMENTED  ${bFragOk.length}/${bFrag.length}` +
+    (bFrag.length ? `  (${(100 * bFragOk.length / bFrag.length).toFixed(1)}%)` : ''));
+  console.log(`\nRULE A (modal baseline edge)`);
   const ok = rows.filter((r) => r.correct);
   const frag = rows.filter((r) => r.fragmented);
   const fragOk = frag.filter((r) => r.correct);
