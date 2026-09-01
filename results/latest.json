@@ -1,5 +1,5 @@
 {
-  "appVersion": "2.4.0",
+  "appVersion": "2.5.0",
   "measured": "2026-09-01",
   "harness": "plottracer-benchmarks",
   "settings": {
@@ -113,26 +113,26 @@
             "figures": 384
           },
           "colour": {
-            "pct": 79.9,
-            "matched": 3261,
+            "pct": 80,
+            "matched": 3264,
             "total": 4082,
             "figures": 191
           },
           "greyscale": {
-            "pct": 70.6,
-            "matched": 1702,
+            "pct": 70.4,
+            "matched": 1699,
             "total": 2412,
             "figures": 193
           },
           "separated": {
-            "pct": 82.5,
-            "matched": 2411,
+            "pct": 82.6,
+            "matched": 2413,
             "total": 2921,
             "figures": 219
           },
           "touching": {
             "pct": 71.4,
-            "matched": 2552,
+            "matched": 2550,
             "total": 3573,
             "figures": 165
           }
@@ -219,27 +219,27 @@
           "metric": "recall at IoU >= 0.5",
           "unit": "bars",
           "all": {
-            "pct": 36.7,
-            "matched": 2473,
+            "pct": 45.5,
+            "matched": 3066,
             "total": 6739,
             "figures": 498
           },
           "colour": {
-            "pct": 36.7,
-            "matched": 2473,
+            "pct": 45.5,
+            "matched": 3066,
             "total": 6739,
             "figures": 498
           },
           "greyscale": null,
           "separated": {
-            "pct": 33.3,
-            "matched": 548,
+            "pct": 46.4,
+            "matched": 763,
             "total": 1645,
             "figures": 168
           },
           "touching": {
-            "pct": 37.8,
-            "matched": 1925,
+            "pct": 45.2,
+            "matched": 2303,
             "total": 5094,
             "figures": 330
           }
@@ -297,9 +297,9 @@
         "figures": 498,
         "figuresInFamily": 498,
         "bars": 6739,
-        "autoPct": 36.7,
+        "autoPct": 45.5,
         "assistedPct": 62,
-        "deltaPts": 25.3,
+        "deltaPts": 16.5,
         "joinedAcrossBaseline": 4,
         "swatchSuspectsReported": 26888,
         "baselineAtAxisLine": 0,
