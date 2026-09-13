@@ -1,6 +1,6 @@
 {
   "appVersion": "2.5.0",
-  "measured": "2026-09-01",
+  "measured": "2026-09-13",
   "harness": "plottracer-benchmarks",
   "settings": {
     "tolerance": 60,
@@ -16,10 +16,10 @@
     "tolerance": "1% of the value range",
     "figures": 344,
     "bars": 5778,
-    "barsWithin": 4674,
-    "barsPct": 80.9,
-    "figuresFullyWithin": 273,
-    "figuresPct": 79.4,
+    "barsWithin": 4695,
+    "barsPct": 81.3,
+    "figuresFullyWithin": 277,
+    "figuresPct": 80.5,
     "excluded": {
       "no-calibration": 33,
       "no-categories": 4,
@@ -199,7 +199,7 @@
         "autoPct": 76.1,
         "assistedPct": 77.4,
         "deltaPts": 1.3,
-        "joinedAcrossBaseline": 3,
+        "joinedAcrossBaseline": 0,
         "swatchSuspectsReported": 7355,
         "baselineAtAxisLine": 41,
         "notDrivable": {
@@ -300,7 +300,7 @@
         "autoPct": 45.5,
         "assistedPct": 62,
         "deltaPts": 16.5,
-        "joinedAcrossBaseline": 4,
+        "joinedAcrossBaseline": 0,
         "swatchSuspectsReported": 26888,
         "baselineAtAxisLine": 0,
         "notDrivable": {}
