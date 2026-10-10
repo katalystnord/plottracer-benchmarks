@@ -1,6 +1,6 @@
 {
-  "appVersion": "2.5.0",
-  "measured": "2026-09-13",
+  "appVersion": "2.6.0",
+  "measured": "2026-10-10",
   "harness": "plottracer-benchmarks",
   "settings": {
     "tolerance": 60,
