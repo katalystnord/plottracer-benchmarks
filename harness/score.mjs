@@ -85,7 +85,7 @@ export function readRgba(file) {
 }
 
 /** An [r,g,b] triple -- the app's own `RGB` shape, so picks pass straight in. */
-function samplePixel(img, x, y) {
+export function samplePixel(img, x, y) {
   const px = Math.max(0, Math.min(img.width - 1, Math.round(x)));
   const py = Math.max(0, Math.min(img.height - 1, Math.round(y)));
   const i = (py * img.width + px) * 4;
@@ -148,7 +148,7 @@ export function boxFillColour(img, box) {
   return modalColour(samples);
 }
 
-function modalColour(samples) {
+export function modalColour(samples) {
   const buckets = new Map();
   for (const c of samples) {
     const key = c.map((v) => v >> 3).join(',');
@@ -209,7 +209,7 @@ export function barsTouch(bars) {
  * theirs? A vertex our trace never covered stays unmatched and still counts
  * against us.
  */
-function resampleAtGtX(trace, gtPoints) {
+export function resampleAtGtX(trace, gtPoints) {
   const out = [];
   for (const g of gtPoints) {
     let best = null;
