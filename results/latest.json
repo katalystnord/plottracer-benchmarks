@@ -1,6 +1,6 @@
 {
-  "appVersion": "2.6.0",
-  "measured": "2026-10-10",
+  "appVersion": "2.7.0",
+  "measured": "2026-11-06",
   "harness": "plottracer-benchmarks",
   "settings": {
     "tolerance": 60,
@@ -16,10 +16,10 @@
     "tolerance": "1% of the value range",
     "figures": 344,
     "bars": 5778,
-    "barsWithin": 4695,
-    "barsPct": 81.3,
-    "figuresFullyWithin": 277,
-    "figuresPct": 80.5,
+    "barsWithin": 4674,
+    "barsPct": 80.9,
+    "figuresFullyWithin": 273,
+    "figuresPct": 79.4,
     "excluded": {
       "no-calibration": 33,
       "no-categories": 4,
@@ -31,40 +31,104 @@
     "match": "exact string, after folding the corpus own literal \\n line-break marker to a space",
     "charts": 887,
     "labels": 12751,
-    "exact": 10169,
-    "pct": 79.8,
+    "exact": 11540,
+    "pct": 90.5,
     "anglesSkipped": 608,
     "splits": [
       {
         "split": "split_4",
         "charts": 444,
         "labels": 6610,
-        "exact": 5203,
-        "pct": 78.7
+        "exact": 5931,
+        "pct": 89.7
       },
       {
         "split": "split_5",
         "charts": 443,
         "labels": 6141,
-        "exact": 4966,
-        "pct": 80.9
+        "exact": 5609,
+        "pct": 91.3
       }
     ]
+  },
+  "lines27": {
+    "supplies": "the plot box and each series' ink (Find lines); the plot box and the legend as the corpus marks it, each entry's sample and text (Auto-extract)",
+    "all": {
+      "figures": 312,
+      "colourTrace": {
+        "pct": 69.3,
+        "matched": 20571,
+        "total": 29688
+      },
+      "findLines": {
+        "pct": 59.4,
+        "matched": 17644,
+        "total": 29688
+      },
+      "autoExtract": null,
+      "autoExtractNoStyle": null
+    },
+    "withLegend": {
+      "figures": 184,
+      "colourTrace": {
+        "pct": 69.8,
+        "matched": 11937,
+        "total": 17109
+      },
+      "findLines": {
+        "pct": 55.6,
+        "matched": 9505,
+        "total": 17109
+      },
+      "autoExtract": {
+        "pct": 63.9,
+        "matched": 10929,
+        "total": 17109
+      },
+      "autoExtractNoStyle": {
+        "pct": 61.9,
+        "matched": 10594,
+        "total": 17109
+      }
+    },
+    "sharedInk": {
+      "figures": 47,
+      "colourTrace": {
+        "pct": 44.8,
+        "matched": 1729,
+        "total": 3859
+      },
+      "findLines": {
+        "pct": 40.5,
+        "matched": 1563,
+        "total": 3859
+      },
+      "autoExtract": {
+        "pct": 44.3,
+        "matched": 1711,
+        "total": 3859
+      },
+      "autoExtractNoStyle": {
+        "pct": 35.7,
+        "matched": 1376,
+        "total": 3859
+      }
+    }
   },
   "replication": [
     {
       "family": "bar",
       "splitA": {
-        "pct": 76.6,
+        "pct": 81.3,
         "total": 3234,
         "figures": 192
       },
       "splitB": {
-        "pct": 76.3,
+        "pct": 78.2,
         "total": 3260,
         "figures": 192
       },
-      "delta": 0.3
+      "delta": 3.1
     },
     {
       "family": "line",
@@ -83,16 +147,16 @@
     {
       "family": "scatter",
       "splitA": {
-        "pct": 87.8,
+        "pct": 91,
         "total": 2410,
         "figures": 52
       },
       "splitB": {
-        "pct": 94.2,
+        "pct": 95.7,
         "total": 2999,
         "figures": 51
       },
-      "delta": 6.4
+      "delta": 4.7
     }
   ],
   "corpora": [
@@ -107,32 +171,32 @@
           "metric": "recall at IoU >= 0.5",
           "unit": "bars",
           "all": {
-            "pct": 76.4,
-            "matched": 4963,
+            "pct": 79.8,
+            "matched": 5179,
             "total": 6494,
             "figures": 384
           },
           "colour": {
-            "pct": 80,
-            "matched": 3264,
+            "pct": 80.7,
+            "matched": 3296,
             "total": 4082,
             "figures": 191
           },
           "greyscale": {
-            "pct": 70.4,
-            "matched": 1699,
+            "pct": 78.1,
+            "matched": 1883,
             "total": 2412,
             "figures": 193
           },
           "separated": {
-            "pct": 82.6,
-            "matched": 2413,
+            "pct": 87.9,
+            "matched": 2569,
             "total": 2921,
             "figures": 219
           },
           "touching": {
-            "pct": 71.4,
-            "matched": 2550,
+            "pct": 73,
+            "matched": 2610,
             "total": 3573,
             "figures": 165
           }
@@ -168,25 +232,25 @@
           "metric": "points within 5% tolerance",
           "unit": "points",
           "all": {
-            "pct": 91.3,
-            "matched": 4941,
+            "pct": 93.6,
+            "matched": 5063,
             "total": 5409,
             "figures": 103,
-            "predPerGt": 2.75
+            "predPerGt": 2.94
           },
           "colour": {
-            "pct": 90.4,
-            "matched": 3057,
+            "pct": 92.6,
+            "matched": 3132,
             "total": 3383,
             "figures": 59,
-            "predPerGt": 2.56
+            "predPerGt": 2.81
           },
           "greyscale": {
-            "pct": 93,
-            "matched": 1884,
+            "pct": 95.3,
+            "matched": 1931,
             "total": 2026,
             "figures": 44,
-            "predPerGt": 3.05
+            "predPerGt": 3.14
           }
         }
       ],
@@ -196,11 +260,11 @@
         "figures": 344,
         "figuresInFamily": 384,
         "bars": 5778,
-        "autoPct": 76.1,
-        "assistedPct": 77.4,
-        "deltaPts": 1.3,
+        "autoPct": 79.9,
+        "assistedPct": 80.1,
+        "deltaPts": 0.2,
         "joinedAcrossBaseline": 0,
-        "swatchSuspectsReported": 7355,
+        "swatchSuspectsReported": 9334,
         "baselineAtAxisLine": 41,
         "notDrivable": {
           "categories": 36,
@@ -219,14 +283,14 @@
           "metric": "recall at IoU >= 0.5",
           "unit": "bars",
           "all": {
-            "pct": 45.5,
-            "matched": 3066,
+            "pct": 45.6,
+            "matched": 3071,
             "total": 6739,
             "figures": 498
           },
           "colour": {
-            "pct": 45.5,
-            "matched": 3066,
+            "pct": 45.6,
+            "matched": 3071,
             "total": 6739,
             "figures": 498
           },
@@ -238,8 +302,8 @@
             "figures": 168
           },
           "touching": {
-            "pct": 45.2,
-            "matched": 2303,
+            "pct": 45.3,
+            "matched": 2308,
             "total": 5094,
             "figures": 330
           }
@@ -275,18 +339,18 @@
           "metric": "points within 5% tolerance",
           "unit": "points",
           "all": {
-            "pct": 32.1,
-            "matched": 3855,
+            "pct": 60.8,
+            "matched": 7292,
             "total": 11996,
             "figures": 110,
-            "predPerGt": 0.37
+            "predPerGt": 0.69
           },
           "colour": {
-            "pct": 32.1,
-            "matched": 3855,
+            "pct": 60.8,
+            "matched": 7292,
             "total": 11996,
             "figures": 110,
-            "predPerGt": 0.37
+            "predPerGt": 0.69
           },
           "greyscale": null
         }
@@ -297,11 +361,11 @@
         "figures": 498,
         "figuresInFamily": 498,
         "bars": 6739,
-        "autoPct": 45.5,
-        "assistedPct": 62,
-        "deltaPts": 16.5,
+        "autoPct": 45.6,
+        "assistedPct": 62.1,
+        "deltaPts": 16.6,
         "joinedAcrossBaseline": 0,
-        "swatchSuspectsReported": 26888,
+        "swatchSuspectsReported": 26496,
         "baselineAtAxisLine": 0,
         "notDrivable": {}
       }

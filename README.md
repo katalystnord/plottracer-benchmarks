@@ -26,7 +26,7 @@ inconsistently drawn, frequently greyscale. This is the corpus that matters.
 > Kenny Davila, Fei Xu, Saleem Ahmed, David A. Mendoza, Srirangaraj Setlur and
 > Venu Govindaraju. **"ICPR 2022: Challenge on Harvesting Raw Tables from
 > Infographics (CHART-Infographics)."** *26th International Conference on
-> Pattern Recognition (ICPR)*, 2022, pp. 4995–5001.
+> Pattern Recognition (ICPR)*, 2022, pp. 4995-5001.
 > doi:[10.1109/ICPR56361.2022.9956289](https://doi.org/10.1109/ICPR56361.2022.9956289)
 
 Packages scored: `ICPR2022_CHARTINFO_UB_UNITEC_PMC_TEST_v2.1`, **split 4**
@@ -44,7 +44,7 @@ interesting rather than merely easy.
 > Christopher Tensmeyer, Sumit Shekhar and Ritwick Chaudhry. **"ICDAR 2019
 > Competition on Harvesting Raw Tables from Infographics
 > (CHART-Infographics)."** *International Conference on Document Analysis and
-> Recognition (ICDAR)*, 2019, pp. 1594–1599.
+> Recognition (ICDAR)*, 2019, pp. 1594-1599.
 > doi:[10.1109/ICDAR.2019.00203](https://doi.org/10.1109/ICDAR.2019.00203)
 
 Package scored: `test_release/task6` from
@@ -161,7 +161,7 @@ and still counts against us.
 
 ## Results
 
-PlotTracer **2.3.0**, measured 2026-08-26. Reproduce with `harness/run.sh`, which
+PlotTracer **2.7.0**, measured 2026-11-06. Reproduce with `harness/run.sh`, which
 scores split 4 and split 5 separately and pools them, runs both paths, and
 regenerates `results/latest.json`.
 
@@ -171,16 +171,16 @@ regenerates `results/latest.json`.
 
 | type | figures | result | colour | greyscale |
 |---|---|---|---|---|
-| **bar** | 384 (6,494 bars) | **76.1%** recall | 79.6% | 70.1% |
+| **bar** | 384 (6,494 bars) | **79.8%** recall | 80.7% | 78.1% |
 | **line** | 312 (29,688 pts) | **69.3%** found | 76.1% | 39.0% |
-| **scatter** | 103 (5,409 pts) | **91.3%** found | 90.4% | 93.0% |
+| **scatter** | 103 (5,409 pts) | **93.6%** found | 92.6% | 95.3% |
 
-**⚑ The bar number reproduces on data it has never seen.** The two splits share
-no images, and scored separately they give **76.1%** (3,234 bars) and **76.0%**
-(3,260 bars) - a tenth of a point apart. Line and scatter move by about six
-points between them, which is the honest width of those estimates. A number that
-survives a disjoint sample is a measurement; one that does not is a property of
-the sample.
+**⚑ How far each number holds on data it has not seen.** The two splits share
+no images. Scored separately, bars give **81.3%** (3,234 bars) and **78.2%**
+(3,260 bars), 3.1 points apart; lines 72.5% and 66.3% (6.2 apart); scatter 91.0%
+and 95.7% (4.7 apart). That spread is the honest width of these estimates. (At
+2.3 the bar splits were a tenth of a point apart; the bar reader has changed
+since, and the two splits now differ by more.)
 
 **ASSISTED** - the same figures, plus the marked category axis and the declared
 baseline. Drivable on **344 of the 384** bar figures (the rest lack two numeric
@@ -188,12 +188,12 @@ tick labels, usable category ticks, or both).
 
 | | recall (IoU >= 0.5) |
 |---|---|
-| those 344 figures, AUTO | **75.7%** (4,376 / 5,778 bars) |
-| those 344 figures, ASSISTED | **76.2%** (4,401 / 5,778 bars) |
-| separated bars | 82.4% -> **83.6%** |
-| touching bars | 70.1% -> **69.9%** |
+| those 344 figures, AUTO | **79.9%** (4,614 / 5,778 bars) |
+| those 344 figures, ASSISTED | **80.1%** (4,626 / 5,778 bars) |
+| separated bars | 88.8% -> **89.2%** |
+| touching bars | 72.4% -> **72.4%** |
 
-⚠️ **Half a point, at the ceiling.** That is the honest size of it on this
+⚠️ **A fifth of a point, at the ceiling.** That is the honest size of it on this
 corpus, and it is worth reading carefully rather than dismissing: the assisted
 inputs mostly change what a reading MEANS (which category it belongs to, whether
 it is a `Value` or a `Min`/`Max` pair), and this metric asks only whether a BOX
@@ -222,8 +222,13 @@ it is stated here rather than reported as a zero.
 The swatch test, which is the baseline's other consumer, **reports and never
 acts** - PlotTracer files every box it finds and marks the suspicious ones, so
 it cannot move a recall number in either direction by construction. On these
-runs it flagged 7,433 of the predicted boxes on PMC and 27,959 on Adobe, none
+runs it flagged 9,334 of the predicted boxes on PMC and 26,496 on Adobe, none
 dropped.
+
+(The table above was measured on 2.3, 2026-08-26. Since 2.5 a bar is never joined
+across the zero rule: a bar stands on its origin, so the rule cannot cut it, and
+only a Span chart's floating bars are joined. The run now reports 0 joins for
+bars.)
 
 ### Manual capture - measured in DATA space
 
@@ -262,41 +267,42 @@ larger and harder; on the 262 figures common to both runs, nothing got worse.
 | type | figures | result |
 |---|---|---|
 | **line** | 200 (2,236 pts) | **92.0%** found |
-| **bar** | 498 (6,739 bars) | **35.3%** recall |
-| **scatter** | 110 (11,996 pts) | **32.1%** found (0.37× - under-detection) |
+| **bar** | 498 (6,739 bars) | **45.6%** recall |
+| **scatter** | 110 (11,996 pts) | **60.8%** found (0.69× - under-detection) |
 
-**ASSISTED** drives on all 498 bar figures here and changes nothing: **35.3% ->
-35.3%**. The hatched-fill fragmentation below happens long before any declaration
-can help, and a declaration cannot rejoin a bar that came back as 34 pieces.
+**ASSISTED** drives on all 498 bar figures here and adds 16.6 points: **45.6% ->
+62.1%** (separated bars 46.4% -> 61.6%, touching 45.3% -> 62.3%). At 2.3 it
+changed nothing (35.3% -> 35.3%).
 
 ### Where it fails, and why
 
 The gaps are more useful than the headline, and each one has a diagnosed cause
 rather than a shrug:
 
-- **Greyscale costs about 10 points on bars and 37 on lines** (79.6 vs 70.1;
+- **Greyscale costs about 3 points on bars and 37 on lines** (80.7 vs 78.1;
   76.1 vs 39.0). Colour-keyed
   extraction has nothing to key on when everything is black. This is a scope
   boundary, not a bug.
 - **Hatched fills break bar detection - this is the whole Adobe bar story.**
   Scanning across one 967px-wide synthetic bar finds the fill colour running in
-  ~28px stretches separated by 2–3px black hatch lines: **147 interruptions in a
+  ~28px stretches separated by 2-3px black hatch lines: **147 interruptions in a
   single bar.** Flood-fill connectivity sees 34 fragments, none of which
   overlaps the true bar by half, so a perfectly-drawn bar scores zero. Real
-  published figures hatch far less often, which is the entire distance between
-  76.1% and 35.3%. Line tracing is unaffected (92%) because it reads column
+  published figures hatch far less often; measured at 2.3, that was the entire
+  distance between 76.1% and 35.3% (now 79.8% and 45.6%). Line tracing is unaffected (92%) because it reads column
   runs, not connectivity.
 - **Bars of identical colour that touch flood into one blob** and read as one
-  oversized bar. Across 384 real bar figures: **82.2%** separated against
-  **71.1%** touching, and on colour figures alone **89.2%** against **73.6%** -
+  oversized bar. Across 384 real bar figures: **87.9%** separated against
+  **73.0%** touching, and on colour figures alone **90.5%** against **74.6%** -
   a bigger cost than greyscale, and the one on this list that is ours to fix
   rather than inherent.
-- **Dense scatter over-detects on real figures (2.87×) and under-detects on
-  synthetic ones (0.37×)** - the same overlap problem from both ends. On PMC,
-  ~30% of the strays are one marker splintering, ~20% are markers already
-  claimed by a neighbour, and ~50% are other ink inside the plot box (grid
-  lines, error bars, trend lines). On the denser synthetic scatter, overlapping
-  markers merge instead of splitting.
+- **Dense scatter over-detects on real figures (2.94×) and under-detects on
+  synthetic ones (0.69×)** - the same overlap problem from both ends. On PMC
+  (measured at 2.3), ~30% of the strays are one marker splintering, ~20% are
+  markers already claimed by a neighbour, and ~50% are other ink inside the plot
+  box (grid lines, error bars, trend lines). On the denser synthetic scatter,
+  overlapping markers merge; since 2.7 Colour trace takes merged markers apart
+  (0.37× and 32.1% found at 2.6, 0.69× and 60.8% now), and the rest still merge.
 
 ---
 

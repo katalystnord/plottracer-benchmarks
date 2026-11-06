@@ -22,6 +22,8 @@ PMC=work/ICPR2022_CHARTINFO_UB_UNITEC_PMC_TEST_v2.1
 PMC_OUT=()
 MANUAL_OUT=()
 OCR_OUT=()
+LINES27_OUT=()
+LINES27_NOSTYLE_OUT=()
 if [ -d "$PMC" ]; then
   for split in split_4 split_5; do
     images="$PMC/chart_images/$split/images"
@@ -47,6 +49,14 @@ if [ -d "$PMC" ]; then
     node harness/score-ocr.mjs \
       --gt "$gt" --rgba "work/rgba/pmc-test-${split}" \
       --plottracer "$PT" --out "out/ocr-${split}.json"
+    # ⚑ Line charts as the app reads them since 2.7 (Find lines; Auto-extract
+    # with the legend marked), and the same read with the line style unused.
+    node harness/score-lines-v27.mjs --engine work/engine-js \
+      --gt "$gt" --rgba "work/rgba/pmc-test-${split}" --out "out/lines-v27-${split}.json"
+    NOSTYLE=1 node harness/score-lines-v27.mjs --engine work/engine-js \
+      --gt "$gt" --rgba "work/rgba/pmc-test-${split}" --out "out/lines-v27-nostyle-${split}.json"
+    LINES27_OUT+=("out/lines-v27-${split}.json")
+    LINES27_NOSTYLE_OUT+=("out/lines-v27-nostyle-${split}.json")
     PMC_OUT+=("out/pmc-${split}.json")
     MANUAL_OUT+=("out/manual-${split}.json")
     OCR_OUT+=("out/ocr-${split}.json")
@@ -76,5 +86,7 @@ if [ ${#PMC_OUT[@]} -eq 2 ]; then
     --adobe out/adobe.json \
     --manual "$(IFS=,; echo "${MANUAL_OUT[*]}")" \
     --ocr "$(IFS=,; echo "${OCR_OUT[*]}")" \
+    --lines27 "$(IFS=,; echo "${LINES27_OUT[*]}")" \
+    --lines27nostyle "$(IFS=,; echo "${LINES27_NOSTYLE_OUT[*]}")" \
     --out results/latest.json
 fi

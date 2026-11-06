@@ -186,6 +186,46 @@ function assistedSummary(rows) {
   };
 }
 
+/**
+ * LINE CHARTS AS THE APP READS THEM SINCE 2.7, from harness/score-lines-v27.mjs.
+ *
+ * The line row above scores Colour trace, which reads all of one ink as one
+ * series. 2.6 added Find lines and 2.7 Auto-extract all series, which tells
+ * series of one ink apart by their line style; neither can show in that row, so
+ * they are their own result, on the same figures, metric and tolerance. Each is
+ * set beside Colour trace on exactly the same figures, because the legend path
+ * runs only where the corpus has legend pairs naming the series.
+ */
+function lines27Summary(files, noStyleFiles, pmcRows) {
+  const load27 = (list) =>
+    (list ?? '').split(',').filter(Boolean).flatMap((f) => JSON.parse(readFileSync(f, 'utf8'))).filter((r) => r.status === 'ok');
+  const rows = load27(files);
+  if (!rows.length) return undefined;
+  const noStyle = new Map(load27(noStyleFiles).map((r) => [r.file, r]));
+  const trace = new Map(pmcRows.filter((r) => r.family === 'line').map((r) => [r.file, r]));
+  const pool = (list, get) => {
+    const s = list.map(get).filter(Boolean);
+    if (!list.length || s.length !== list.length) return null;
+    const w = s.reduce((n, x) => n + x.within, 0);
+    const g = s.reduce((n, x) => n + x.gt, 0);
+    return { pct: +((100 * w) / g).toFixed(1), matched: w, total: g };
+  };
+  const group = (list) => ({
+    figures: list.length,
+    colourTrace: pool(list, (r) => trace.get(r.file)),
+    findLines: pool(list, (r) => r.findLines),
+    autoExtract: list.every((r) => r.legend) ? pool(list, (r) => r.legend) : null,
+    autoExtractNoStyle: list.every((r) => r.legend) && noStyle.size ? pool(list, (r) => noStyle.get(r.file)?.legend) : null,
+  });
+  const legend = rows.filter((r) => r.legend);
+  return {
+    supplies: 'the plot box and each series\' ink (Find lines); the plot box and the legend as the corpus marks it, each entry\'s sample and text (Auto-extract)',
+    all: group(rows),
+    withLegend: group(legend),
+    sharedInk: group(legend.filter((r) => r.legend.sharedGroups > 0)),
+  };
+}
+
 const corpora = [
   {
     id: 'pmc',
@@ -241,6 +281,7 @@ const results = {
   },
   manual: manualSummary(a.manual),
   ocr: ocrSummary(a.ocr),
+  lines27: lines27Summary(a.lines27, a.lines27nostyle, [...split4, ...split5]),
   replication: split5.length
     ? ['bar', 'line', 'scatter'].map((f) => replication(split4, split5, f)).filter(Boolean)
     : undefined,
