@@ -33,8 +33,11 @@ if [ -d "$PMC" ]; then
       continue
     fi
     python3 harness/decode.py "$images" "work/rgba/pmc-test-${split}"
+    # ⚑ v2.7: the detector's bar boxes, through the app's own detector path, as Colour trace receives them
+    node harness/detect-bars.mjs --plottracer "$PT" --gt "$gt" --rgba "work/rgba/pmc-test-${split}" \
+      --out "out/bars-detected-${split}.json"
     node harness/score.mjs --engine work/engine-js \
-      --gt "$gt" --rgba "work/rgba/pmc-test-${split}" \
+      --gt "$gt" --rgba "work/rgba/pmc-test-${split}" --bars-detected "out/bars-detected-${split}.json" \
       --type bar,line,scatter --out "out/pmc-${split}.json"
     # ⚑ THE OTHER HALF OF THE PRODUCT, and it is not optional. `score.mjs`
     # measures detection in IMAGE space; this drives the app's real
@@ -66,8 +69,10 @@ fi
 ADOBE=work/adobe/test_release/task6
 if [ -d "$ADOBE" ]; then
   python3 harness/decode.py "$ADOBE/png" work/rgba/adobe-test
+  node harness/detect-bars.mjs --plottracer "$PT" --gt "$ADOBE/gt_json" --rgba work/rgba/adobe-test \
+    --out out/bars-detected-adobe.json
   node harness/score.mjs --engine work/engine-js \
-    --gt "$ADOBE/gt_json" --rgba work/rgba/adobe-test \
+    --gt "$ADOBE/gt_json" --rgba work/rgba/adobe-test --bars-detected out/bars-detected-adobe.json \
     --type bar,line,scatter --out out/adobe.json
 fi
 

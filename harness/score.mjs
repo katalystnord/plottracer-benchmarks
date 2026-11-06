@@ -349,6 +349,9 @@ async function main() {
   const gtDir = path.resolve(args.gt);
   const rgbaDir = path.resolve(args.rgba);
   const wanted = new Set((args.type ?? 'bar,line,scatter').split(','));
+  // ⚑ v2.7: the detector's bar boxes per figure, from harness/detect-bars.mjs (the app's own detector path), handed to
+  // the bar read as the app's Colour trace hands them. Absent, the bars are read by colour alone, as before 2.7.
+  const barsDetected = args['bars-detected'] ? JSON.parse(readFileSync(args['bars-detected'], 'utf8')) : null;
 
   const { runBarDetect } = await import(path.join(engineDir, 'engine/barDetectRun.js'));
   const { runBlobDetect } = await import(path.join(engineDir, 'engine/blobDetectRun.js'));
@@ -406,7 +409,8 @@ async function main() {
         for (const target of picks) {
           const r = runBarDetect(img.data, img.width, img.height, target, TOLERANCE, 'foreground', region, {
             minDiameter: MIN_BLOB_DIAMETER,
-          }, cats ?? undefined, base ? { atPixel: base.atPixel, tolerancePx: base.tolerancePx } : undefined);
+          }, cats ?? undefined, base ? { atPixel: base.atPixel, tolerancePx: base.tolerancePx } : undefined, undefined,
+          barsDetected?.[f.replace(/\.json$/, '')]);
           if ('error' in r) continue;
           boxes.push(...r.boxes.map(predBox));
           joined += r.joinedAcrossBaseline ?? 0;
