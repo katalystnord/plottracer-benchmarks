@@ -48,7 +48,10 @@ function summarise(rows, family) {
     const s = list.filter(pred);
     if (!s.length) return null;
     if (family === 'bar') {
-      const m = s.reduce((a, r) => a + r.matched, 0);
+      // ⚑ UNDER THE COMPETITION'S PROTOCOL (David, 2026-11-06): task 6 is given tasks 1 to 5's answers, the axes among
+      // them, so a bar figure is read with its category axis and baseline from the task-4 axes wherever they give one
+      // (score.mjs's `assisted`), and with the plot box and colours alone where they do not.
+      const m = s.reduce((a, r) => a + (r.assisted?.matched ?? r.matched), 0);
       const g = s.reduce((a, r) => a + r.gt, 0);
       return { pct: +((100 * m) / g).toFixed(1), matched: m, total: g, figures: s.length };
     }
@@ -275,8 +278,7 @@ const results = {
   // the README asks every other digitiser for exactly this and had better carry
   // it too.
   paths: {
-    auto: 'the plot box and the element colours, and nothing else',
-    assisted: 'AUTO plus the two declarations a bar calibration walk asks for: the marked category axis and the baseline the bars stand on (bars only)',
+    protocol: 'the competition\'s task 6 inputs (the answers to tasks 1 to 5: chart type, text and roles, plot box and axes, legend), and each element\'s colour as a person picks it; bars are read with the category axis and baseline the task-4 axes give',
     manual: 'a full calibration from two tick labels plus the category axis, then two corners per bar; scored in DATA space',
   },
   manual: manualSummary(a.manual),

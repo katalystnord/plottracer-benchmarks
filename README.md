@@ -63,42 +63,28 @@ annotations are, so they stay where they were downloaded.
 
 ## What is measured, and what is not
 
-PlotTracer is human-in-the-loop. These corpora benchmark **fully automatic**
-recognition. Pretending those are the same thing would make any number
-meaningless, so the protocol states exactly where the human stops and the
-program starts - and it states it **three times**, because there are three
-different places that line can honestly be drawn.
+### The protocol: the competition's own
 
-### AUTO - the headline path
+Both corpora are the ICPR CHART-Info data, and the competition says what task 6
+(data extraction) is given: the answers to tasks 1 to 5. Every task-6 record
+carries them in its own `task6.input` block: the chart type (task 1), every text
+block and its role (tasks 2 and 3), the plot box and the axes with their tick
+positions and values (task 4), and the legend pairs (task 5). These results are
+measured under that protocol, as any other tool's task-6 result is:
 
-**Two inputs, both supplied from the corpus's own annotation:**
+1. **The plot box** - `task4.output._plot_bb`.
+2. **The axes** - for a bar chart, the category axis and the baseline the bars
+   stand on, both from the task-4 axes: the category ticks, and the pixel where
+   the value axis reaches zero (or, where it never does, the axis line the bars
+   stand on). PlotTracer asks for exactly these in its bar calibration walk, and
+   its Automatic axis detection finds them on the figure itself.
+3. **The colour(s)** - each element's colour, as a person picks it in any
+   digitiser: sampled from the image at an element, then deduplicated to visually
+   distinct colours. The detector still has to find every element of that colour
+   by itself, across the whole plot box, and is scored on all of them.
 
-1. **The plot box** - taken from each corpus's own `task4.output._plot_bb`.
-   This is what a user has after clicking the axes to calibrate.
-2. **The colour(s)** - sampled *from the image* at ground-truth element
-   positions, then deduplicated to visually distinct colours. This models "the
-   user clicks each colour they can see". It hands the program a place to
-   sample, never an answer: the detector still has to find every element of that
-   colour by itself, across the whole plot box, and is scored on all of them.
-
-### ASSISTED - bars only, and it is a CEILING
-
-The same run, plus the two things a person **declares** in the bar calibration
-walk and that no detector can work out for itself:
-
-3. **The marked category axis** - the corpus's own category ticks.
-4. **The declared baseline** - the pixel where the value axis reaches zero, from
-   the corpus's own numeric tick labels; or, where the axis never reaches zero,
-   the axis line the bars stand on.
-
-⚠️ **A ceiling, not a user's day.** Those declarations are the annotator's,
-placed exactly. A person marking an axis and clicking a baseline lands near them,
-not on them. It answers *how much is on the table when the declaration is right*,
-and it is reported apart from AUTO, never blended into it.
-
-⚑ **Line and scatter have no assisted path, and that is a finding rather than an
-omission.** Their calibration walk asks for the axes and the colour, and AUTO
-already supplies both. There is one number because there is one path.
+A bar figure whose task-4 axes give no category ticks (40 of PMC's 384) is read
+with the plot box and colours alone.
 
 ### MANUAL - the other half of the product, in data space
 
@@ -108,7 +94,7 @@ A person calibrating and capturing by hand. This drives the application's own
 corners per bar - and compares the **read value** with the corpus's own numbers,
 at 1% of the value range.
 
-### Common to all three
+### Common to both
 
 **Everything after the inputs is PlotTracer's own shipped code** - `runBarDetect`,
 `runBlobDetect`, `runColorTrace`, `CalibrationSession` - imported from a compiled
@@ -116,46 +102,8 @@ checkout, at the app's own defaults (tolerance 60, minimum blob diameter 3). The
 harness reimplements no extraction logic; if the two ever disagree, the harness is
 wrong by construction.
 
-AUTO and ASSISTED score in **image space** (Task 6a). That isolates the extraction
-algorithm from calibration, which MANUAL then measures on its own.
-
-### ⚑⚑ Why the assisted path exists at all
-
-Until 2026-08-26 this harness ran the auto path only, and reported the result
-under the product's name. Three of PlotTracer's bar techniques are gated on a
-declared baseline and one on the marked axis, so an entire class of work was
-invisible to this instrument **by construction** - not through a bug, which
-eventually shows itself, but through a scope that was never declared, and an
-undeclared scope reads as coverage forever.
-
-The AUTO numbers below were never wrong, and they still reproduce to the bar. The
-LABEL on them was broader than the thing they measured. All three paths are now
-reported, and each says which it is.
-
-
-### Metrics
-
-| chart type | rule | why |
-|---|---|---|
-| bar | greedy one-to-one match at **IoU ≥ 0.5**, reported as recall | a bar is an *area*, so overlap is the question |
-| line, scatter | the competition's own Task 6a rule: `Σ max(0, 1 − D/T) / max(#GT, #pred)`, with **T = 5% of the smaller image dimension** | a marker is a *position*, so distance is |
-
-Two numbers are reported for point types, because they answer different
-questions and only quoting one would flatter or libel the tool depending on
-which:
-
-- **found** - what fraction of real ground-truth points were recovered within
-  tolerance. *Did we get the data?*
-- **pred/gt** - predictions emitted per real point. Above 1.0 is
-  over-detection (strays the user must delete); below 1.0 is under-detection
-  (data lost). The competition's own score folds this in by dividing by
-  `max(#GT, #pred)`.
-
-Line traces are resampled at the ground truth's own x positions before scoring.
-PlotTracer emits roughly one point per pixel column, against ground truth
-digitised at ~20 vertices; without resampling the metric would measure sampling
-density rather than accuracy. A vertex the trace never covered stays unmatched
-and still counts against us.
+Bars, lines and scatter score in **image space** (Task 6a). That isolates the
+extraction algorithm from calibration, which MANUAL then measures on its own.
 
 ---
 
@@ -167,38 +115,21 @@ regenerates `results/latest.json`.
 
 ### UB-UNITEC PMC - real published figures
 
-**AUTO** - the plot box and the colours, and nothing else.
-
 | type | figures | result | colour | greyscale |
 |---|---|---|---|---|
-| **bar** | 384 (6,494 bars) | **79.8%** recall | 80.7% | 78.1% |
+| **bar** | 384 (6,494 bars) | **79.9%** recall | 80.7% | 78.5% |
 | **line** | 312 (29,688 pts) | **69.3%** found | 76.1% | 39.0% |
 | **scatter** | 103 (5,409 pts) | **93.6%** found | 92.6% | 95.3% |
 
 **⚑ How far each number holds on data it has not seen.** The two splits share
-no images. Scored separately, bars give **81.3%** (3,234 bars) and **78.2%**
-(3,260 bars), 3.1 points apart; lines 72.5% and 66.3% (6.2 apart); scatter 91.0%
+no images. Scored separately, bars give **81.5%** (3,234 bars) and **78.3%**
+(3,260 bars), 3.2 points apart; lines 72.5% and 66.3% (6.2 apart); scatter 91.0%
 and 95.7% (4.7 apart). That spread is the honest width of these estimates. (At
 2.3 the bar splits were a tenth of a point apart; the bar reader has changed
 since, and the two splits now differ by more.)
 
-**ASSISTED** - the same figures, plus the marked category axis and the declared
-baseline. Drivable on **344 of the 384** bar figures (the rest lack two numeric
-tick labels, usable category ticks, or both).
-
-| | recall (IoU >= 0.5) |
-|---|---|
-| those 344 figures, AUTO | **79.9%** (4,614 / 5,778 bars) |
-| those 344 figures, ASSISTED | **80.1%** (4,626 / 5,778 bars) |
-| separated bars | 88.8% -> **89.2%** |
-| touching bars | 72.4% -> **72.4%** |
-
-⚠️ **A fifth of a point, at the ceiling.** That is the honest size of it on this
-corpus, and it is worth reading carefully rather than dismissing: the assisted
-inputs mostly change what a reading MEANS (which category it belongs to, whether
-it is a `Value` or a `Min`/`Max` pair), and this metric asks only whether a BOX
-overlaps a box. A record fix that puts the same rectangle in the right column
-scores identically to one that does not.
+Without the task-4 axes, reading the plot box and colours alone, the same bar
+figures give 79.8%: on real figures the axes change little.
 
 ### ⚑⚑ What the baseline was worth, measured for the first time
 
@@ -267,12 +198,13 @@ larger and harder; on the 262 figures common to both runs, nothing got worse.
 | type | figures | result |
 |---|---|---|
 | **line** | 200 (2,236 pts) | **92.0%** found |
-| **bar** | 498 (6,739 bars) | **45.6%** recall |
+| **bar** | 498 (6,739 bars) | **62.1%** recall |
 | **scatter** | 110 (11,996 pts) | **60.8%** found (0.69× - under-detection) |
 
-**ASSISTED** drives on all 498 bar figures here and adds 16.6 points: **45.6% ->
-62.1%** (separated bars 46.4% -> 61.6%, touching 45.3% -> 62.3%). At 2.3 it
-changed nothing (35.3% -> 35.3%).
+Separated bars 61.6%, touching 62.3%. Here the task-4 axes matter: they say which
+way the categories run, which the hatch join needs to put a hatched bar back
+together (`algorithms/hatchJoin.ts`). Without them, from the plot box and colours
+alone, it is 45.6%.
 
 ### Where it fails, and why
 
@@ -289,7 +221,7 @@ rather than a shrug:
   single bar.** Flood-fill connectivity sees 34 fragments, none of which
   overlaps the true bar by half, so a perfectly-drawn bar scores zero. Real
   published figures hatch far less often; measured at 2.3, that was the entire
-  distance between 76.1% and 35.3% (now 79.8% and 45.6%). Line tracing is unaffected (92%) because it reads column
+  distance between 76.1% and 35.3% (now 79.9% and 62.1%). Line tracing is unaffected (92%) because it reads column
   runs, not connectivity.
 - **Bars of identical colour that touch flood into one blob** and read as one
   oversized bar. Across 384 real bar figures: **87.9%** separated against

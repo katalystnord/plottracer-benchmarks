@@ -8,8 +8,7 @@
     "space": "image (Task 6a)"
   },
   "paths": {
-    "auto": "the plot box and the element colours, and nothing else",
-    "assisted": "AUTO plus the two declarations a bar calibration walk asks for: the marked category axis and the baseline the bars stand on (bars only)",
+    "protocol": "the competition's task 6 inputs (the answers to tasks 1 to 5: chart type, text and roles, plot box and axes, legend), and each element's colour as a person picks it; bars are read with the category axis and baseline the task-4 axes give",
     "manual": "a full calibration from two tick labels plus the category axis, then two corners per bar; scored in DATA space"
   },
   "manual": {
@@ -119,16 +118,16 @@
     {
       "family": "bar",
       "splitA": {
-        "pct": 81.3,
+        "pct": 81.5,
         "total": 3234,
         "figures": 192
       },
       "splitB": {
-        "pct": 78.2,
+        "pct": 78.3,
         "total": 3260,
         "figures": 192
       },
-      "delta": 3.1
+      "delta": 3.2
     },
     {
       "family": "line",
@@ -171,32 +170,32 @@
           "metric": "recall at IoU >= 0.5",
           "unit": "bars",
           "all": {
-            "pct": 79.8,
-            "matched": 5179,
+            "pct": 79.9,
+            "matched": 5188,
             "total": 6494,
             "figures": 384
           },
           "colour": {
             "pct": 80.7,
-            "matched": 3296,
+            "matched": 3295,
             "total": 4082,
             "figures": 191
           },
           "greyscale": {
-            "pct": 78.1,
-            "matched": 1883,
+            "pct": 78.5,
+            "matched": 1893,
             "total": 2412,
             "figures": 193
           },
           "separated": {
-            "pct": 87.9,
-            "matched": 2569,
+            "pct": 88.4,
+            "matched": 2581,
             "total": 2921,
             "figures": 219
           },
           "touching": {
             "pct": 73,
-            "matched": 2610,
+            "matched": 2607,
             "total": 3573,
             "figures": 165
           }
@@ -283,27 +282,27 @@
           "metric": "recall at IoU >= 0.5",
           "unit": "bars",
           "all": {
-            "pct": 45.6,
-            "matched": 3071,
+            "pct": 62.1,
+            "matched": 4187,
             "total": 6739,
             "figures": 498
           },
           "colour": {
-            "pct": 45.6,
-            "matched": 3071,
+            "pct": 62.1,
+            "matched": 4187,
             "total": 6739,
             "figures": 498
           },
           "greyscale": null,
           "separated": {
-            "pct": 46.4,
-            "matched": 763,
+            "pct": 61.6,
+            "matched": 1013,
             "total": 1645,
             "figures": 168
           },
           "touching": {
-            "pct": 45.3,
-            "matched": 2308,
+            "pct": 62.3,
+            "matched": 3174,
             "total": 5094,
             "figures": 330
           }
