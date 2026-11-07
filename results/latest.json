@@ -1,6 +1,6 @@
 {
   "appVersion": "2.7.0",
-  "measured": "2026-11-06",
+  "measured": "2026-11-07",
   "harness": "plottracer-benchmarks",
   "settings": {
     "tolerance": 60,
@@ -118,16 +118,16 @@
     {
       "family": "bar",
       "splitA": {
-        "pct": 81.5,
+        "pct": 87.3,
         "total": 3234,
         "figures": 192
       },
       "splitB": {
-        "pct": 78.3,
+        "pct": 83.2,
         "total": 3260,
         "figures": 192
       },
-      "delta": 3.2
+      "delta": 4.1
     },
     {
       "family": "line",
@@ -170,32 +170,32 @@
           "metric": "recall at IoU >= 0.5",
           "unit": "bars",
           "all": {
-            "pct": 79.9,
-            "matched": 5188,
+            "pct": 85.3,
+            "matched": 5537,
             "total": 6494,
             "figures": 384
           },
           "colour": {
-            "pct": 80.7,
-            "matched": 3295,
+            "pct": 82.9,
+            "matched": 3382,
             "total": 4082,
             "figures": 191
           },
           "greyscale": {
-            "pct": 78.5,
-            "matched": 1893,
+            "pct": 89.3,
+            "matched": 2155,
             "total": 2412,
             "figures": 193
           },
           "separated": {
-            "pct": 88.4,
-            "matched": 2581,
+            "pct": 92.2,
+            "matched": 2692,
             "total": 2921,
             "figures": 219
           },
           "touching": {
-            "pct": 73,
-            "matched": 2607,
+            "pct": 79.6,
+            "matched": 2845,
             "total": 3573,
             "figures": 165
           }
@@ -259,11 +259,11 @@
         "figures": 344,
         "figuresInFamily": 384,
         "bars": 5778,
-        "autoPct": 79.9,
-        "assistedPct": 80.1,
-        "deltaPts": 0.2,
+        "autoPct": 85.8,
+        "assistedPct": 85.6,
+        "deltaPts": -0.2,
         "joinedAcrossBaseline": 0,
-        "swatchSuspectsReported": 9334,
+        "swatchSuspectsReported": 7358,
         "baselineAtAxisLine": 41,
         "notDrivable": {
           "categories": 36,
@@ -282,27 +282,27 @@
           "metric": "recall at IoU >= 0.5",
           "unit": "bars",
           "all": {
-            "pct": 62.1,
-            "matched": 4187,
+            "pct": 85.4,
+            "matched": 5758,
             "total": 6739,
             "figures": 498
           },
           "colour": {
-            "pct": 62.1,
-            "matched": 4187,
+            "pct": 85.4,
+            "matched": 5758,
             "total": 6739,
             "figures": 498
           },
           "greyscale": null,
           "separated": {
-            "pct": 61.6,
-            "matched": 1013,
+            "pct": 86.4,
+            "matched": 1421,
             "total": 1645,
             "figures": 168
           },
           "touching": {
-            "pct": 62.3,
-            "matched": 3174,
+            "pct": 85.1,
+            "matched": 4337,
             "total": 5094,
             "figures": 330
           }
@@ -360,11 +360,11 @@
         "figures": 498,
         "figuresInFamily": 498,
         "bars": 6739,
-        "autoPct": 45.6,
-        "assistedPct": 62.1,
-        "deltaPts": 16.6,
+        "autoPct": 86.1,
+        "assistedPct": 85.4,
+        "deltaPts": -0.6,
         "joinedAcrossBaseline": 0,
-        "swatchSuspectsReported": 26496,
+        "swatchSuspectsReported": 23410,
         "baselineAtAxisLine": 0,
         "notDrivable": {}
       }

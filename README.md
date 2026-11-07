@@ -109,7 +109,7 @@ extraction algorithm from calibration, which MANUAL then measures on its own.
 
 ## Results
 
-PlotTracer **2.7.0**, measured 2026-11-06. Reproduce with `harness/run.sh`, which
+PlotTracer **2.7.0**, measured 2026-11-07. Reproduce with `harness/run.sh`, which
 scores split 4 and split 5 separately and pools them, runs both paths, and
 regenerates `results/latest.json`.
 
@@ -117,19 +117,23 @@ regenerates `results/latest.json`.
 
 | type | figures | result | colour | greyscale |
 |---|---|---|---|---|
-| **bar** | 384 (6,494 bars) | **79.9%** recall | 80.7% | 78.5% |
+| **bar** | 384 (6,494 bars) | **85.3%** recall | 82.9% | 89.3% |
 | **line** | 312 (29,688 pts) | **69.3%** found | 76.1% | 39.0% |
 | **scatter** | 103 (5,409 pts) | **93.6%** found | 92.6% | 95.3% |
 
 **⚑ How far each number holds on data it has not seen.** The two splits share
-no images. Scored separately, bars give **81.5%** (3,234 bars) and **78.3%**
-(3,260 bars), 3.2 points apart; lines 72.5% and 66.3% (6.2 apart); scatter 91.0%
+no images. Scored separately, bars give **87.3%** (3,234 bars) and **83.2%**
+(3,260 bars), 4.1 points apart; lines 72.5% and 66.3% (6.2 apart); scatter 91.0%
 and 95.7% (4.7 apart). That spread is the honest width of these estimates. (At
 2.3 the bar splits were a tenth of a point apart; the bar reader has changed
 since, and the two splits now differ by more.)
 
 Without the task-4 axes, reading the plot box and colours alone, the same bar
-figures give 79.8%: on real figures the axes change little.
+figures give 85.5%: the axes change nothing here. Since 2.7 the bar read is given
+the boxes of PlotTracer's own chart-element detector, which sees each drawn bar as
+one shape whatever its fill (its `bar` class; harness/detect-bars.mjs runs it
+through the app's own path), so the colour read no longer has to put a bar back
+together from its pieces.
 
 ### ⚑⚑ What the baseline was worth, measured for the first time
 
@@ -198,36 +202,36 @@ larger and harder; on the 262 figures common to both runs, nothing got worse.
 | type | figures | result |
 |---|---|---|
 | **line** | 200 (2,236 pts) | **92.0%** found |
-| **bar** | 498 (6,739 bars) | **62.1%** recall |
+| **bar** | 498 (6,739 bars) | **85.4%** recall |
 | **scatter** | 110 (11,996 pts) | **60.8%** found (0.69× - under-detection) |
 
-Separated bars 61.6%, touching 62.3%. Here the task-4 axes matter: they say which
-way the categories run, which the hatch join needs to put a hatched bar back
-together (`algorithms/hatchJoin.ts`). Without them, from the plot box and colours
-alone, it is 45.6%.
+Separated bars 86.4%, touching 85.1%. Without the task-4 axes, from the plot box and
+colours alone, 86.1%. Most of these bars are hatched; the detector sees each as one
+shape (at 2.7.0, before it, 62.1% with the axes and 45.6% without).
 
 ### Where it fails, and why
 
 The gaps are more useful than the headline, and each one has a diagnosed cause
 rather than a shrug:
 
-- **Greyscale costs about 3 points on bars and 37 on lines** (80.7 vs 78.1;
-  76.1 vs 39.0). Colour-keyed
+- **Greyscale costs 37 points on lines** (76.1 vs 39.0); on bars, since the
+  detector, greyscale figures read better than colour ones (89.3 vs 82.9). Colour-keyed
   extraction has nothing to key on when everything is black. This is a scope
   boundary, not a bug.
-- **Hatched fills break bar detection - this is the whole Adobe bar story.**
+- **Hatched fills broke bar detection - this was the whole Adobe bar story until
+  the detector took it over in 2.7.**
   Scanning across one 967px-wide synthetic bar finds the fill colour running in
   ~28px stretches separated by 2-3px black hatch lines: **147 interruptions in a
   single bar.** Flood-fill connectivity sees 34 fragments, none of which
   overlaps the true bar by half, so a perfectly-drawn bar scores zero. Real
   published figures hatch far less often; measured at 2.3, that was the entire
-  distance between 76.1% and 35.3% (now 79.9% and 62.1%). Line tracing is unaffected (92%) because it reads column
-  runs, not connectivity.
+  distance between 76.1% and 35.3%. With the detector's bars the two corpora read
+  85.3% and 85.4%. Line tracing is unaffected (92%) because it reads column runs,
+  not connectivity.
 - **Bars of identical colour that touch flood into one blob** and read as one
-  oversized bar. Across 384 real bar figures: **87.9%** separated against
-  **73.0%** touching, and on colour figures alone **90.5%** against **74.6%** -
-  a bigger cost than greyscale, and the one on this list that is ours to fix
-  rather than inherent.
+  oversized bar. Across 384 real bar figures: **92.2%** separated against
+  **79.6%** touching, and on colour figures alone **92.3%** against **76.9%** -
+  the largest cost left on bars, and ours to fix rather than inherent.
 - **Dense scatter over-detects on real figures (2.94×) and under-detects on
   synthetic ones (0.69×)** - the same overlap problem from both ends. On PMC
   (measured at 2.3), ~30% of the strays are one marker splintering, ~20% are
