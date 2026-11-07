@@ -117,23 +117,41 @@ regenerates `results/latest.json`.
 
 | type | figures | result | colour | greyscale |
 |---|---|---|---|---|
-| **bar** | 384 (6,494 bars) | **85.3%** recall | 82.9% | 89.3% |
+| **bar** | 384 (6,494 bars) | **79.5%** recall | 75.0% | 86.9% |
 | **line** | 312 (29,688 pts) | **69.3%** found | 76.1% | 39.0% |
 | **scatter** | 103 (5,409 pts) | **93.6%** found | 92.6% | 95.3% |
 
 **⚑ How far each number holds on data it has not seen.** The two splits share
-no images. Scored separately, bars give **87.3%** (3,234 bars) and **83.2%**
-(3,260 bars), 4.1 points apart; lines 72.5% and 66.3% (6.2 apart); scatter 91.0%
+no images. Scored separately, bars give **81.9%** (3,234 bars) and **77.1%**
+(3,260 bars), 4.8 points apart; lines 72.5% and 66.3% (6.2 apart); scatter 91.0%
 and 95.7% (4.7 apart). That spread is the honest width of these estimates. (At
 2.3 the bar splits were a tenth of a point apart; the bar reader has changed
 since, and the two splits now differ by more.)
 
 Without the task-4 axes, reading the plot box and colours alone, the same bar
-figures give 85.5%: the axes change nothing here. Since 2.7 the bar read is given
-the boxes of PlotTracer's own chart-element detector, which sees each drawn bar as
-one shape whatever its fill (its `bar` class; harness/detect-bars.mjs runs it
-through the app's own path), so the colour read no longer has to put a bar back
-together from its pieces.
+figures give 79.5%: the axes change nothing here. Since 2.7 the bars are found by
+PlotTracer's own chart-element detector (its `bar` class; harness/detect-bars.mjs
+runs it through the app's own path), which sees each drawn bar as one shape
+whatever its fill; the colour a person picks says which series a bar belongs to.
+
+**On the competition's own scale.** Recall counts the true bars found and ignores
+extra boxes. The competition's Task 6a score and the F-measure at IoU 0.5 count
+every extra box against the read, and Task 6a also how close each corner lands
+(harness/lib/chartinfo6a.mjs, reimplemented from the published script and task
+page; the corpus's own answers score 1.0 against themselves on every figure):
+
+| bars | recall | precision | F at IoU 0.5 | Task 6a |
+|---|---|---|---|---|
+| PMC, PlotTracer 2.7 | 79.5% | 95.2% | **86.6** | **78.9** |
+| Adobe, PlotTracer 2.7 | 79.6% | 92.4% | **85.5** | **70.5** |
+
+Before the detector decided what is a bar, the colour read placed 85% of the bars
+but only 1 box in 5 (PMC) to 1 in 9 (Adobe) was one: F 30.7 and 20.4. For
+reference, the ChartDete paper (Yan et al. 2023, arXiv 2305.04151, Table 4)
+reports, for models trained for bars alone on the PMC test set, F 89.3 and a
+Task 6a score of 93.75 (ChartDete) and F 86.9 (Cascade R-CNN + FPN). Their test
+set version and their Task 6a implementation are not ours to check, so the Task
+6a numbers are the less comparable of the two.
 
 ### ⚑⚑ What the baseline was worth, measured for the first time
 
@@ -202,11 +220,11 @@ larger and harder; on the 262 figures common to both runs, nothing got worse.
 | type | figures | result |
 |---|---|---|
 | **line** | 200 (2,236 pts) | **92.0%** found |
-| **bar** | 498 (6,739 bars) | **85.4%** recall |
+| **bar** | 498 (6,739 bars) | **79.6%** recall |
 | **scatter** | 110 (11,996 pts) | **60.8%** found (0.69× - under-detection) |
 
-Separated bars 86.4%, touching 85.1%. Without the task-4 axes, from the plot box and
-colours alone, 86.1%. Most of these bars are hatched; the detector sees each as one
+Separated bars 82.6%, touching 78.6%. Without the task-4 axes, from the plot box and
+colours alone, 79.6%. Most of these bars are hatched; the detector sees each as one
 shape (at 2.7.0, before it, 62.1% with the axes and 45.6% without).
 
 ### Where it fails, and why
@@ -215,7 +233,7 @@ The gaps are more useful than the headline, and each one has a diagnosed cause
 rather than a shrug:
 
 - **Greyscale costs 37 points on lines** (76.1 vs 39.0); on bars, since the
-  detector, greyscale figures read better than colour ones (89.3 vs 82.9). Colour-keyed
+  detector, greyscale figures read better than colour ones (86.9 vs 75.0). Colour-keyed
   extraction has nothing to key on when everything is black. This is a scope
   boundary, not a bug.
 - **Hatched fills broke bar detection - this was the whole Adobe bar story until
@@ -225,13 +243,14 @@ rather than a shrug:
   single bar.** Flood-fill connectivity sees 34 fragments, none of which
   overlaps the true bar by half, so a perfectly-drawn bar scores zero. Real
   published figures hatch far less often; measured at 2.3, that was the entire
-  distance between 76.1% and 35.3%. With the detector's bars the two corpora read
-  85.3% and 85.4%. Line tracing is unaffected (92%) because it reads column runs,
+  distance between 76.1% and 35.3%. With the detector deciding what is a bar the
+  two corpora read 79.5% and 79.6%, at 95% and 92% precision. Line tracing is unaffected (92%) because it reads column runs,
   not connectivity.
 - **Bars of identical colour that touch flood into one blob** and read as one
-  oversized bar. Across 384 real bar figures: **92.2%** separated against
-  **79.6%** touching, and on colour figures alone **92.3%** against **76.9%** -
-  the largest cost left on bars, and ours to fix rather than inherent.
+  oversized bar, where the detector misses them. Across 384 real bar figures:
+  **87.8%** separated against **72.6%** touching, and on colour figures alone
+  **87.6%** against **67.1%** - the largest cost left on bars, and ours to fix
+  rather than inherent.
 - **Dense scatter over-detects on real figures (2.94×) and under-detects on
   synthetic ones (0.69×)** - the same overlap problem from both ends. On PMC
   (measured at 2.3), ~30% of the strays are one marker splintering, ~20% are
