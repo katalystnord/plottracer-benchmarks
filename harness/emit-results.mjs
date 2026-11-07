@@ -53,7 +53,17 @@ function summarise(rows, family) {
       // (score.mjs's `assisted`), and with the plot box and colours alone where they do not.
       const m = s.reduce((a, r) => a + (r.assisted?.matched ?? r.matched), 0);
       const g = s.reduce((a, r) => a + r.gt, 0);
-      return { pct: +((100 * m) / g).toFixed(1), matched: m, total: g, figures: s.length };
+      // ⚑ the competition's scale too (2026-11-07): precision and the F-measure at IoU 0.5 count every extra box, and
+      // Task 6a (harness/lib/chartinfo6a.mjs, as the task page describes it) also how close each bar's corners are
+      const p = s.reduce((a, r) => a + (r.assisted?.pred ?? r.pred), 0);
+      const sc = s.map((r) => r.assisted?.score6a ?? r.score6a).filter((v) => typeof v === 'number');
+      const P = p ? m / p : 0, R = g ? m / g : 0;
+      return {
+        pct: +((100 * m) / g).toFixed(1), matched: m, total: g, figures: s.length,
+        precision: +(100 * P).toFixed(1), predicted: p,
+        f1: P + R ? +((200 * P * R) / (P + R)).toFixed(1) : 0,
+        ...(sc.length ? { task6a: +((100 * sc.reduce((x, y) => x + y, 0)) / sc.length).toFixed(1) } : {}),
+      };
     }
     const w = s.reduce((a, r) => a + r.within, 0);
     const g = s.reduce((a, r) => a + r.gt, 0);

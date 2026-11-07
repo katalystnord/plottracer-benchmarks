@@ -59,6 +59,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import { boxRecallIoU, pointScore, toleranceFor } from './lib/metric.mjs';
+import { barScore6a } from './lib/chartinfo6a.mjs';
 import { numericTicksAlong, axisPointsAlong, extremeTickPair } from './lib/gt.mjs';
 
 // The app's own defaults, not tuned for this run -- see Workspace.tsx.
@@ -416,7 +417,15 @@ async function main() {
           joined += r.joinedAcrossBaseline ?? 0;
           suspects += r.swatchSuspects?.length ?? 0;
         }
-        return { ...boxRecallIoU(truth, boxes, 0.5), joined, suspects };
+        // ⚑ the competition's own Task 6a score too (harness/lib/chartinfo6a.mjs, 2026-11-07), which counts every
+        // extra box against the read where the recall above does not: intended, and the script's arithmetic
+        const asCorpus = boxes.map((b) => ({ x0: b.minX, y0: b.minY, width: b.maxX - b.minX, height: b.maxY - b.minY }));
+        const size = { width: img.width, height: img.height };
+        return {
+          ...boxRecallIoU(truth, boxes, 0.5), joined, suspects,
+          score6a: +barScore6a(asCorpus, bars, size).toFixed(4),
+          score6aPublished: +barScore6a(asCorpus, bars, size, 'published').toFixed(4),
+        };
       };
 
       // ⚑ THE AUTO PATH -- the plot box and the colours, and nothing else. This
@@ -437,7 +446,7 @@ async function main() {
         picks: picks.length,
         monochrome: isMonochrome(picks),
         touching: barsTouch(bars),
-        matched: auto.matched, gt: auto.gt, pred: auto.pred,
+        matched: auto.matched, gt: auto.gt, pred: auto.pred, score6a: auto.score6a, score6aPublished: auto.score6aPublished,
         ticks: cats ? cats.ticks : 0,
         tickKind: cats ? cats.kind : null,
         assisted: assisted
@@ -446,7 +455,7 @@ async function main() {
               // supply. A figure missing one is NOT the full assisted path and
               // must not be pooled as though it were.
               supplied: [...(cats ? ['categories'] : []), ...(base ? ['baseline'] : [])],
-              matched: assisted.matched, pred: assisted.pred,
+              matched: assisted.matched, pred: assisted.pred, score6a: assisted.score6a, score6aPublished: assisted.score6aPublished,
               baseline: base ? { source: base.source, atPixel: +base.atPixel.toFixed(2) } : null,
               // The two actions the baseline unlocks, counted so a change in the
               // number above can be attributed rather than guessed at. `joined`
