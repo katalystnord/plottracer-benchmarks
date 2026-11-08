@@ -27,6 +27,7 @@ import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { readRgba, samplePixel, modalColour, resampleAtGtX, isMonochrome } from './score.mjs';
 import { pointScore, toleranceFor } from './lib/metric.mjs';
+import { lineScore } from './lib/linescore.mjs';
 
 const args = {};
 for (let i = 2; i < process.argv.length; i += 2) args[process.argv[i].replace(/^--/, '')] = process.argv[i + 1];
@@ -93,6 +94,19 @@ for (const f of readdirSync(args.gt).filter((n) => n.endsWith('.json')).sort()) 
     return cache.get(k);
   };
   row.findLines = scoreSeries(seriesList, (i) => (inks[i] ? toXY(linesOf(inks[i], { contour: false }).flatMap((L) => L.points)) : []), T);
+  // ⚑ the line score LineFormer reports (2026-11-07): every line Find lines hands the user, each its own series, once
+  // per ink
+  const gtLines = seriesList.filter((S) => S.length).map((S) => S.map((p) => ({ x: p.x, y: p.y })));
+  {
+    const seen = new Set(), found = [];
+    for (const ink of inks) {
+      if (!ink || seen.has(ink.join())) continue;
+      seen.add(ink.join());
+      for (const Ln of linesOf(ink, { contour: false })) found.push(Ln.points.map(([x, y]) => ({ x, y })));
+    }
+    row.findLines.line6a = +lineScore(found, gtLines, '6a').toFixed(4);
+    row.findLines.line6b = +lineScore(found, gtLines, '6b').toFixed(4);
+  }
 
   // LEGEND: the corpus's legend pairs as the marked legend, then Auto-extract all series
   const blocks = new Map((gt.task2?.output?.text_blocks ?? []).map((b) => [b.id, b]));
@@ -138,7 +152,11 @@ for (const f of readdirSync(args.gt).filter((n) => n.endsWith('.json')).sort()) 
         seriesPts.set(norm(plan[e].name), joined.map((p) => ({ x: p.x, y: p.y })));
       });
     }
-    row.legend = { ...scoreSeries(seriesList, (i) => seriesPts.get(norm(names[i])) ?? [], T), entries: entries.length, sharedGroups, toldApart };
+    const extracted = [...seriesPts.values()].filter((v) => v.length);
+    row.legend = {
+      ...scoreSeries(seriesList, (i) => seriesPts.get(norm(names[i])) ?? [], T), entries: entries.length, sharedGroups, toldApart,
+      line6a: +lineScore(extracted, gtLines, '6a').toFixed(4), line6b: +lineScore(extracted, gtLines, '6b').toFixed(4),
+    };
   } else {
     row.legend = null;
     row.legendSkipped = pairs.length ? 'legend-texts-do-not-name-the-series' : 'no-legend-pairs';

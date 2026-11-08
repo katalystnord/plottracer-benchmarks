@@ -60,6 +60,7 @@ import { pathToFileURL } from 'node:url';
 
 import { boxRecallIoU, pointScore, toleranceFor } from './lib/metric.mjs';
 import { barScore6a } from './lib/chartinfo6a.mjs';
+import { lineScore } from './lib/linescore.mjs';
 import { numericTicksAlong, axisPointsAlong, extremeTickPair } from './lib/gt.mjs';
 
 // The app's own defaults, not tuned for this run -- see Workspace.tsx.
@@ -523,6 +524,8 @@ async function main() {
     let sumPred = 0;
     let picksTotal = 0;
     const allColours = [];
+    // ⚑ each series' trace as the app hands it to the user, for the line score LineFormer reports (2026-11-07)
+    const predLines = [];
     for (const series of seriesList) {
       if (!series.length) continue;
       // ONE pick per series -- see modalColour for why this, and not the union
@@ -534,6 +537,7 @@ async function main() {
       if (family === 'line') {
         const r = runColorTrace(img.data, img.width, img.height, target, TOLERANCE, 'foreground', region);
         if (!('error' in r)) preds = r.points;
+        if (preds.length) predLines.push(preds.map((p) => ({ x: p.x, y: p.y })));
       } else {
         const r = runBlobDetect(img.data, img.width, img.height, target, TOLERANCE, 'foreground', region, {
           minDiameter: MIN_BLOB_DIAMETER,
@@ -556,6 +560,10 @@ async function main() {
       score: sumGt > 0 ? sumScore / sumGt : 0,
       within: sumWithin, gt: sumGt, pred: sumPred,
       series: seriesList.length,
+      ...(family === 'line' ? (() => {
+        const gtLines = seriesList.filter((L) => L.length).map((L) => L.map((p) => ({ x: p.x, y: p.y })));
+        return { line6a: +lineScore(predLines, gtLines, '6a').toFixed(4), line6b: +lineScore(predLines, gtLines, '6b').toFixed(4) };
+      })() : {}),
       // See the scatter row: a line figure's walk supplies the axes and the
       // colour, both of which the harness already passes.
       assisted: null,
